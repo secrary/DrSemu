@@ -1,0 +1,18 @@
+[submodule "shared_libs/spdlog"]
+	path = shared_libs/spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "shared_libs/json"]
+	path = shared_libs/json
+	url = https://github.com/nlohmann/json
+[submodule "shared_libs/phnt"]
+	path = shared_libs/phnt
+	url = https://github.com/processhacker/phnt
+[submodule "shared_libs/digestpp"]
+	path = shared_libs/digestpp
+	url = https://github.com/kerukuro/digestpp
+[submodule "shared_libs/pe_parse"]
+	path = shared_libs/pe_parse
+	url = https://github.com/trailofbits/pe-parse
+[submodule "shared_libs/cxxopts"]
+	path = shared_libs/cxxopts
+	url = https://github.com/jarro2783/cxxopts
