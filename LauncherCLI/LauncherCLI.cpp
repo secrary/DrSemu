@@ -512,10 +512,10 @@ bool run_app_under_dr_semu(
 		return false;
 	}
 
-	std::wstring dr_run_path = L"C:\\dynamorio\\bin64\\drrun.exe";
+	std::wstring dr_run_path = binaries_location + L"dynamorio\\bin64\\drrun.exe";
 	if (arch == launchercli::arch::x86_32)
 	{
-		dr_run_path = L"C:\\dynamorio\\bin32\\drrun.exe";
+		dr_run_path = binaries_location + L"dynamorio\\bin32\\drrun.exe";
 	}
 	if (!fs::exists(dr_run_path))
 	{

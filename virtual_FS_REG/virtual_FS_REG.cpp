@@ -105,7 +105,7 @@ int __cdecl wmain(const int argc, const WCHAR** argv)
 		pipe_name = argv[1];
 	}
 
-	spdlog::info("Connecting to a launcher...");
+	//spdlog::info("Connecting to a launcher...");
 
 	dr_semu::shared::pipe launcher_pipe(pipe_name, false);
 	if (!launcher_pipe.is_valid())
