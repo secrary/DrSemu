@@ -1,4 +1,4 @@
-a# Dr.Semu
+# Dr.Semu
 
 `Dr.Semu` runs executables in an isolated environment, monitors the behavior of a process, let you to create rules and based on the rules detect if the process is malicious or not.
 
@@ -23,9 +23,9 @@ After terminating the process, based on `Dr.Semu` rules we receive if the execut
 
 ### Dr.Semu rules
 
-<script src="https://gist.github.com/secrary/e16daf698d466136229dc417d7dbcfa3.js"></script>
-
 They are written in `LUA` and use dynamic information from the interception and static information about the sample. It's trivial to add support of other languages.
+
+Example: https://gist.github.com/secrary/e16daf698d466136229dc417d7dbcfa3
 
 ### Usage
 
