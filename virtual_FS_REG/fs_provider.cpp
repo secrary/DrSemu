@@ -11,7 +11,7 @@ std::wstring get_real_path(const std::wstring& relative_file_path)
 	{
 		return L"";
 	}
-	std::wstring full_file_path{ p_value };
+	std::wstring full_file_path{p_value};
 	free(p_value);
 
 	full_file_path += L'\\';
@@ -59,8 +59,8 @@ inline std::shared_ptr<PRJ_PLACEHOLDER_INFO> create_placeholder_info(
 {
 	size = FIELD_OFFSET(PRJ_PLACEHOLDER_INFO, VariableData[fs_descriptor.len]);
 	std::shared_ptr<PRJ_PLACEHOLDER_INFO> placeholder_info(static_cast<PRJ_PLACEHOLDER_INFO*>(
-		calloc(1, size)),
-		free);
+		                                                       calloc(1, size)),
+	                                                       free);
 
 	memcpy_s(placeholder_info.get()->VariableData, fs_descriptor.len, fs_descriptor.ptr_sd.get(), fs_descriptor.len);
 
@@ -90,7 +90,7 @@ bool read_file_content(const std::wstring& path, PBYTE data, UINT32& len)
 {
 	const auto real_path = get_real_path(path);
 	const auto file_handle = CreateFile(real_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0,
-		nullptr);
+	                                    nullptr);
 	if (file_handle == INVALID_HANDLE_VALUE)
 	{
 		return false;
@@ -186,7 +186,7 @@ Description:
 
 --*/
 HRESULT fs_provider::GetDirEnum(const PRJ_CALLBACK_DATA* CallbackData, const GUID* EnumerationId,
-	PCWSTR SearchExpression, PRJ_DIR_ENTRY_BUFFER_HANDLE DirEntryBufferHandle)
+                                PCWSTR SearchExpression, PRJ_DIR_ENTRY_BUFFER_HANDLE DirEntryBufferHandle)
 {
 	auto hr = S_OK;
 
@@ -221,8 +221,8 @@ HRESULT fs_provider::GetDirEnum(const PRJ_CALLBACK_DATA* CallbackData, const GUI
 		// For each one that matches SearchExpression it will create an entry to return to ProjFS
 		// and store it in the DirInfo object.
 		const auto populate_result = populate_dir_info_for_path(CallbackData->FilePathName,
-			dir_info.get(),
-			SearchExpression);
+		                                                        dir_info.get(),
+		                                                        SearchExpression);
 
 		if (!populate_result)
 		{
@@ -243,8 +243,8 @@ HRESULT fs_provider::GetDirEnum(const PRJ_CALLBACK_DATA* CallbackData, const GUI
 
 		auto current_basic_info = dir_info->current_basic_info();
 		hr = PrjFillDirEntryBuffer(dir_info->current_file_name(),
-			&current_basic_info,
-			DirEntryBufferHandle);
+		                           &current_basic_info,
+		                           DirEntryBufferHandle);
 
 		// If this routine returns HRESULT_FROM_WIN32(ERROR_INSUFFICIENT_BUFFER) when adding an entry to the enumeration,
 		// the provider returns S_OK from the callback and waits for the next PRJ_GET_DIRECTORY_ENUMERATION_CB callback.
@@ -282,7 +282,7 @@ HRESULT fs_provider::GetPlaceholderInfo(const PRJ_CALLBACK_DATA* CallbackData)
 	}
 
 	const auto hr = this->WritePlaceholderInfo(CallbackData->FilePathName,
-		placeholder_ptr.get(), size);
+	                                           placeholder_ptr.get(), size);
 
 	if (S_OK != hr)
 	{
@@ -332,7 +332,7 @@ HRESULT fs_provider::GetFileData(const PRJ_CALLBACK_DATA* CallbackData, UINT64 B
 	// callback.
 	PRJ_VIRTUALIZATION_INSTANCE_INFO instance_info;
 	hr = PrjGetVirtualizationInstanceInfo(_instanceHandle,
-		&instance_info);
+	                                      &instance_info);
 
 	if (FAILED(hr))
 	{
@@ -343,7 +343,7 @@ HRESULT fs_provider::GetFileData(const PRJ_CALLBACK_DATA* CallbackData, UINT64 B
 	// the caller who caused this callback to be invoked is performing non-cached I/O.  For more
 	// details, see the topic "Providing File Data" in the ProjFS documentation.
 	const auto write_buffer = PrjAllocateAlignedBuffer(_instanceHandle,
-		Length);
+	                                                   Length);
 
 	if (write_buffer == nullptr)
 	{
@@ -362,16 +362,16 @@ HRESULT fs_provider::GetFileData(const PRJ_CALLBACK_DATA* CallbackData, UINT64 B
 
 	// Call ProjFS to write the data we read from the registry into the on-disk placeholder.
 	hr = this->WriteFileData(&CallbackData->DataStreamId,
-		reinterpret_cast<PVOID>(write_buffer),
-		ByteOffset,
-		Length);
+	                         reinterpret_cast<PVOID>(write_buffer),
+	                         ByteOffset,
+	                         Length);
 
 	if (FAILED(hr))
 	{
 		// If this callback returns an error, ProjFS will return this error code to the thread that
 		// issued the file read, and the target file will remain an empty placeholder.
 		wprintf(L"%hs: failed to write file for [%s]: 0x%08x\n",
-			__FUNCTION__, CallbackData->FilePathName, hr);
+		        __FUNCTION__, CallbackData->FilePathName, hr);
 	}
 
 	// Free the memory-aligned buffer we allocated.
@@ -382,8 +382,8 @@ HRESULT fs_provider::GetFileData(const PRJ_CALLBACK_DATA* CallbackData, UINT64 B
 
 
 HRESULT fs_provider::Notify(const PRJ_CALLBACK_DATA* CallbackData, BOOLEAN IsDirectory,
-	PRJ_NOTIFICATION NotificationType, PCWSTR DestinationFileName,
-	PRJ_NOTIFICATION_PARAMETERS* NotificationParameters)
+                            PRJ_NOTIFICATION NotificationType, PCWSTR DestinationFileName,
+                            PRJ_NOTIFICATION_PARAMETERS* NotificationParameters)
 {
 	// allow
 	return HRESULT_FROM_WIN32(STATUS_SUCCESS);
@@ -396,7 +396,7 @@ HRESULT fs_provider::QueryFileName(const PRJ_CALLBACK_DATA* CallbackData)
 
 
 bool fs_provider::populate_dir_info_for_path(const std::wstring& relative_path, dir_info* dir_info,
-	const std::wstring& search_expression)
+                                             const std::wstring& search_expression)
 {
 	const auto file_path = get_real_path(relative_path);
 

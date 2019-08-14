@@ -28,7 +28,7 @@ namespace dr_semu::com::handlers
 		//	_COM_Outptr_ LPVOID FAR * ppv)
 
 		constexpr auto args_size = sizeof(REFCLSID) + sizeof(LPUNKNOWN) + sizeof(DWORD) + sizeof(REFIID) + sizeof(PVOID
-			);
+		);
 
 		auto context = reinterpret_cast<DWORD>(drwrap_get_arg(wrapcxt, 2));
 

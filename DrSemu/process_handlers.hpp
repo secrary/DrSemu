@@ -60,7 +60,8 @@ namespace dr_semu::process::handlers
 		//	0x400 - PAGE_WRITECOMBINE
 
 
-		const auto return_status = NtProtectVirtualMemory(process_handle, ptr_base_address, ptr_region_size, new_protect, ptr_out_old_protect);
+		const auto return_status = NtProtectVirtualMemory(process_handle, ptr_base_address, ptr_region_size,
+		                                                  new_protect, ptr_out_old_protect);
 
 		dr_syscall_set_result(drcontext, return_status);
 		return SYSCALL_SKIP;
@@ -81,11 +82,10 @@ namespace dr_semu::process::handlers
 
 		if (ptr_context_record != nullptr)
 		{
-
 #ifdef _WIN64
 		const auto ip = ptr_context_record->Rip;
 #else
-		const auto ip = ptr_context_record->Eip;
+			const auto ip = ptr_context_record->Eip;
 #endif // WIN32
 
 			//dr_printf("[NtContinue] EIP: 0x%lx\n", ip);
@@ -143,8 +143,8 @@ namespace dr_semu::process::handlers
 		const auto tid = dr_get_thread_id(drcontext);
 
 		const auto return_status = NtQueryInformationProcess(process_handle, process_info_class,
-			ptr_out_process_information, process_info_length,
-			ptr_out_return_length);
+		                                                     ptr_out_process_information, process_info_length,
+		                                                     ptr_out_return_length);
 		const auto is_success = NT_SUCCESS(return_status);
 
 		const auto handle_name = helpers::get_process_name(process_handle);
@@ -211,7 +211,7 @@ namespace dr_semu::process::handlers
 		}
 		if (is_success &&
 			(process_info_class == ProcessImageFileNameWin32 || process_info_class == ProcessImageFileName)
-			)
+		)
 		{
 			const auto ptr_unicode = static_cast<PUNICODE_STRING>(ptr_out_process_information);
 
@@ -225,7 +225,7 @@ namespace dr_semu::process::handlers
 					const std::wstring explorer_path = L"C:\\Windows\\Explorer.EXE";
 					memset(ptr_unicode->Buffer, 0, ptr_unicode->Length);
 					memcpy_s(ptr_unicode->Buffer, ptr_unicode->MaximumLength, explorer_path.c_str(),
-						explorer_path.length() * sizeof(TCHAR));
+					         explorer_path.length() * sizeof(TCHAR));
 				}
 			}
 		}
@@ -324,14 +324,14 @@ namespace dr_semu::process::handlers
 					allowed_target_processes.end())
 				{
 					dr_printf("[Access Forbidden] current_pid: %d target_process_id: %d\n", dr_get_process_id(),
-						target_process_id);
+					          target_process_id);
 					shared_variables::json_concurrent_vector.push_back(write_virtual_memory);
 					dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
 					return SYSCALL_SKIP;
 				}
 
 				const auto return_status = NtWriteVirtualMemory(target_process_handle, ptr_opt_base_address, buffer,
-					buffer_size, ptr_out_opt_number_of_bytes_written);
+				                                                buffer_size, ptr_out_opt_number_of_bytes_written);
 
 				write_virtual_memory["NtWriteVirtualMemory"]["success"] = NT_SUCCESS(return_status);
 				shared_variables::json_concurrent_vector.push_back(write_virtual_memory);
@@ -522,7 +522,7 @@ namespace dr_semu::process::handlers
 		}
 
 		const auto return_status = NtOpenThread(ptr_out_thread_handle, desired_access, ptr_object_attributes,
-			ptr_opt_client_id);
+		                                        ptr_opt_client_id);
 
 		if (return_status == STATUS_SUCCESS)
 		{
@@ -568,9 +568,9 @@ namespace dr_semu::process::handlers
 		const auto ptr_opt_attribute_list = PPS_ATTRIBUTE_LIST(dr_syscall_get_param(drcontext, 10));
 
 		if ((opt_proc_object_attributes != nullptr && ((opt_proc_object_attributes->RootDirectory != nullptr) ||
-			(opt_proc_object_attributes->ObjectName != nullptr)))
+				(opt_proc_object_attributes->ObjectName != nullptr)))
 			|| (opt_thread_object_attributes != nullptr && ((opt_thread_object_attributes->RootDirectory != nullptr) ||
-			(opt_thread_object_attributes->ObjectName != nullptr))))
+				(opt_thread_object_attributes->ObjectName != nullptr))))
 		{
 			dr_printf("[NtCreateUserProcess] object_attributes. check!\n");
 			dr_messagebox("NtCreateUserProcess");
@@ -657,7 +657,7 @@ namespace dr_semu::process::handlers
 		//dr_printf("[NtCreateUserProcess] {%s} path: %s\nrelocated: %ls\n", is_target_x86 ? "x86" : "x64",
 		//          image_path_ascii.c_str(), relocated_image_path.c_str());
 
-		dr_semu::shared_variables::are_children = true;
+		shared_variables::are_children = true;
 		// SYSCALL_CONTINUE => inject child process
 		return SYSCALL_CONTINUE;
 	}
@@ -768,7 +768,7 @@ namespace dr_semu::process::handlers
 		}
 
 		const auto return_status = NtOpenProcess(ptr_out_handle, desired_access, ptr_object_attributes,
-			ptr_opt_client_id);
+		                                         ptr_opt_client_id);
 		const auto is_success = NT_SUCCESS(return_status);
 
 		nt_open_process["NtOpenProcess"]["success"] = is_success;

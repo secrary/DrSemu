@@ -1,7 +1,7 @@
 #pragma once
 
 //#define disable_all_handlers
-#define xxx dr_printf("check! line: %d function: %ls\n", __LINE__, __FUNCTIONW__);
+#define xxx dr_printf("check! line: %d function: %ls\n", __LINE__, __FUNCTIONW__); // quick testing
 
 #define PAGE_SIZE 0x1000
 
@@ -166,7 +166,7 @@ namespace dr_semu::utils
 
 	inline bool get_file_size(const std::wstring& file_path, __out size_t& data_size)
 	{
-		const std::string file_path_ascii{ file_path.begin(), file_path.end() };
+		const std::string file_path_ascii{file_path.begin(), file_path.end()};
 		const auto file_handle = dr_open_file(file_path_ascii.data(), DR_FILE_READ);
 		if (file_handle != INVALID_FILE)
 		{
@@ -192,12 +192,12 @@ namespace dr_semu::utils
 		const auto number_of_bytes = unicode_string->Length + sizeof(wchar_t); // MAXLENGTH
 		const auto number_of_wchar = number_of_bytes / sizeof(wchar_t);
 
-		const std::shared_ptr<wchar_t> object_name_char{ new wchar_t[number_of_wchar] };
+		const std::shared_ptr<wchar_t> object_name_char{new wchar_t[number_of_wchar]};
 		memset(object_name_char.get(), 0, number_of_bytes);
 
 		dr_safe_write(object_name_char.get(), unicode_string->Length, unicode_string->Buffer, nullptr);
 
-		const std::wstring object_name_string{ object_name_char.get(), wcslen(object_name_char.get()) };
+		const std::wstring object_name_string{object_name_char.get(), wcslen(object_name_char.get())};
 
 		result_string = object_name_string;
 
@@ -258,7 +258,7 @@ namespace dr_semu::utils
 		uint64 file_size{};
 		dr_file_size(file_handle, &file_size);
 
-		const std::shared_ptr<char> file_content{ new char[file_size] {} };
+		const std::shared_ptr<char> file_content{new char[file_size]{}};
 
 		const size_t read_bytes = dr_read_file(file_handle, file_content.get(), file_size);
 		if (read_bytes != file_size)
@@ -309,7 +309,7 @@ namespace dr_semu::utils
 				{
 					memset(ptr_ldr_module->BaseDllName.Buffer, 0, ptr_ldr_module->BaseDllName.MaximumLength);
 					memcpy_s(ptr_ldr_module->BaseDllName.Buffer, ptr_ldr_module->BaseDllName.Length, new_name.c_str(),
-						new_name.length() * sizeof(TCHAR));
+					         new_name.length() * sizeof(TCHAR));
 				}
 			}
 		}
@@ -323,8 +323,7 @@ namespace dr_semu::utils
 		auto status = NtQueryObject(handle, ObjectNameInformation, nullptr, 0, &name_info_size);
 		if (status == STATUS_INFO_LENGTH_MISMATCH)
 		{
-
-			const std::shared_ptr<BYTE> name_information{ new BYTE[name_info_size] };
+			const std::shared_ptr<BYTE> name_information{new BYTE[name_info_size]};
 			const auto in_size = name_info_size;
 
 			status = NtQueryObject(handle, ObjectNameInformation, name_information.get(), in_size, &name_info_size);
@@ -365,19 +364,19 @@ namespace dr_semu::utils
 		//memset(command_line.Buffer, 0, command_line.MaximumLength);
 		memset(window_title.Buffer, 0, window_title.MaximumLength);
 		memcpy_s(image_path.Buffer, image_path.MaximumLength, explorer_path.c_str(),
-			explorer_path.length() * sizeof(TCHAR));
+		         explorer_path.length() * sizeof(TCHAR));
 		/*memcpy_s(command_line.Buffer, command_line.MaximumLength, explorer_path.c_str(),
 			explorer_path.length() * sizeof(TCHAR));*/
 		memcpy_s(window_title.Buffer, window_title.MaximumLength, explorer_path.c_str(),
-			explorer_path.length() * sizeof(TCHAR));
+		         explorer_path.length() * sizeof(TCHAR));
 
 		const auto current_directory = ptr_peb->ProcessParameters->CurrentDirectory.DosPath;
 
 		TCHAR system_directory[] = L"C:\\Windows\\System32";
-		const auto explorer_current_directory = std::wstring{ system_directory } +L"\\";
+		const auto explorer_current_directory = std::wstring{system_directory} + L"\\";
 		memset(current_directory.Buffer, 0, current_directory.MaximumLength);
 		memcpy_s(current_directory.Buffer, current_directory.Length, explorer_current_directory.c_str(),
-			explorer_current_directory.length() * sizeof(TCHAR));
+		         explorer_current_directory.length() * sizeof(TCHAR));
 
 		// rename in Ldr
 		rename_ldr(reinterpret_cast<PVOID>(GetModuleHandleW(nullptr)), L"Explorer.EXE");

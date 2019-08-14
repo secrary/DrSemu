@@ -40,8 +40,8 @@ namespace dr_semu::networking::handlers
 			return;
 		}
 
-		const std::wstring target_url{ url };
-		const auto target_file_name = file_name_opt != nullptr ? std::wstring{ file_name_opt } : L"";
+		const std::wstring target_url{url};
+		const auto target_file_name = file_name_opt != nullptr ? std::wstring{file_name_opt} : L"";
 
 		// trace call
 		const std::string target_url_ascii(target_url.begin(), target_url.end());
@@ -51,7 +51,7 @@ namespace dr_semu::networking::handlers
 			{"url", target_url_ascii.c_str()},
 			{"file_path", target_file_name_ascii.c_str()},
 		};
-		dr_semu::shared_variables::json_concurrent_vector.push_back(url_download);
+		shared_variables::json_concurrent_vector.push_back(url_download);
 	}
 
 	inline void pro_url_download_to_cache_file(void* wrapcxt, void** user_data)
@@ -69,7 +69,7 @@ namespace dr_semu::networking::handlers
 			return;
 		}
 
-		const std::wstring target_url{ url };
+		const std::wstring target_url{url};
 		const std::string target_url_ascii(target_url.begin(), target_url.end());
 
 		// trace call
@@ -77,6 +77,6 @@ namespace dr_semu::networking::handlers
 		url_download_to_cache["URLDownloadToCacheFile"]["before"] = {
 			{"url", target_url_ascii.c_str()},
 		};
-		dr_semu::shared_variables::json_concurrent_vector.push_back(url_download_to_cache);
+		shared_variables::json_concurrent_vector.push_back(url_download_to_cache);
 	}
 } // namespace dr_semu::networking::handlers

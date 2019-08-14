@@ -64,7 +64,7 @@ namespace dr_semu::objects::handlers
 			};
 			open_event["NtOpenEvent"]["success"] = NT_SUCCESS(return_status);
 
-			dr_semu::shared_variables::json_concurrent_vector.push_back(open_event);
+			shared_variables::json_concurrent_vector.push_back(open_event);
 			dr_syscall_set_result(drcontext, return_status);
 			return SYSCALL_SKIP;
 		}
@@ -107,7 +107,7 @@ namespace dr_semu::objects::handlers
 				ptr_opt_object_attributes, &redirected_object_attributes, original_name);
 
 			return_status = NtCreateEvent(ptr_out_event_handle, desired_access, &redirected_object_attributes,
-				event_type, initial_state);
+			                              event_type, initial_state);
 			delete redirected_object_attributes.ObjectName;
 
 			json create_event;
@@ -117,7 +117,7 @@ namespace dr_semu::objects::handlers
 			};
 			create_event["NtCreateEvent"]["success"] = NT_SUCCESS(return_status);
 
-			dr_semu::shared_variables::json_concurrent_vector.push_back(create_event);
+			shared_variables::json_concurrent_vector.push_back(create_event);
 
 			dr_syscall_set_result(drcontext, return_status);
 			return SYSCALL_SKIP;
@@ -167,7 +167,7 @@ namespace dr_semu::objects::handlers
 			};
 			open_semaphore["NtOpenSemaphore"]["success"] = NT_SUCCESS(return_status);
 
-			dr_semu::shared_variables::json_concurrent_vector.push_back(open_semaphore);
+			shared_variables::json_concurrent_vector.push_back(open_semaphore);
 			dr_syscall_set_result(drcontext, return_status);
 			return SYSCALL_SKIP;
 		}
@@ -212,7 +212,7 @@ namespace dr_semu::objects::handlers
 				ptr_opt_object_attributes, &redirected_object_attributes, original_name);
 
 			return_status = NtCreateSemaphore(ptr_out_semaphore_handle, desired_access, &redirected_object_attributes,
-				initial_count, maximum_count);
+			                                  initial_count, maximum_count);
 			delete redirected_object_attributes.ObjectName;
 
 			json create_semaphore;
@@ -222,7 +222,7 @@ namespace dr_semu::objects::handlers
 			};
 			create_semaphore["NtCreateSemaphore"]["success"] = NT_SUCCESS(return_status);
 
-			dr_semu::shared_variables::json_concurrent_vector.push_back(create_semaphore);
+			shared_variables::json_concurrent_vector.push_back(create_semaphore);
 
 			dr_syscall_set_result(drcontext, return_status);
 			return SYSCALL_SKIP;
@@ -268,8 +268,8 @@ namespace dr_semu::objects::handlers
 			ptr_opt_object_attributes, &redirected_object_attributes, original_name);
 
 		const auto return_status = NtCreateMailslotFile(ptr_out_handle, desired_access, &redirected_object_attributes,
-			ptr_out_status_block, creation_options, quota, max_message_size,
-			ptr_read_timeout);
+		                                                ptr_out_status_block, creation_options, quota, max_message_size,
+		                                                ptr_read_timeout);
 		delete redirected_object_attributes.ObjectName;
 		const auto is_success = NT_SUCCESS(return_status);
 
@@ -280,7 +280,7 @@ namespace dr_semu::objects::handlers
 		};
 		create_mailslot["NtCreateMailslotFile"]["success"] = is_success;
 
-		dr_semu::shared_variables::json_concurrent_vector.push_back(create_mailslot);
+		shared_variables::json_concurrent_vector.push_back(create_mailslot);
 		return SYSCALL_SKIP;
 	}
 
@@ -329,7 +329,7 @@ namespace dr_semu::objects::handlers
 			};
 			create_mutex["NtCreateMutant"]["success"] = NT_SUCCESS(return_status);
 
-			dr_semu::shared_variables::json_concurrent_vector.push_back(create_mutex);
+			shared_variables::json_concurrent_vector.push_back(create_mutex);
 
 			dr_syscall_set_result(drcontext, return_status);
 			return SYSCALL_SKIP;
@@ -382,7 +382,7 @@ namespace dr_semu::objects::handlers
 			};
 			open_mutex["NtOpenMutant"]["success"] = NT_SUCCESS(return_status);
 
-			dr_semu::shared_variables::json_concurrent_vector.push_back(open_mutex);
+			shared_variables::json_concurrent_vector.push_back(open_mutex);
 			dr_syscall_set_result(drcontext, return_status);
 			return SYSCALL_SKIP;
 		}

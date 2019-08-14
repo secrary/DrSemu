@@ -34,7 +34,7 @@ namespace dr_semu::filesystem::helpers
 		auto status = NtQueryObject(handle, ObjectTypeInformation, nullptr, 0, &type_info_size);
 		if (status == STATUS_INFO_LENGTH_MISMATCH)
 		{
-			const auto type_information{ new byte[type_info_size] };
+			const auto type_information{new byte[type_info_size]};
 			const auto in_size = type_info_size;
 			status = NtQueryObject(handle, ObjectTypeInformation, type_information, in_size, &type_info_size);
 			if (!NT_SUCCESS(status))
@@ -44,7 +44,7 @@ namespace dr_semu::filesystem::helpers
 			const auto ptr_type_information = reinterpret_cast<POBJECT_TYPE_INFORMATION>(type_information);
 
 			const std::wstring type_name(ptr_type_information->TypeName.Buffer,
-				wcslen(ptr_type_information->TypeName.Buffer));
+			                             wcslen(ptr_type_information->TypeName.Buffer));
 
 			return type_name == L"File";
 		}
@@ -110,7 +110,7 @@ namespace dr_semu::filesystem::helpers
 			return {};
 		}
 
-		if (!dr_semu::networking::config::disable_internet)
+		if (!networking::config::disable_internet)
 		{
 			if (utils::find_case_insensitive(handle_name, LR"(\??\Nsi)") == 0)
 			{
@@ -144,14 +144,14 @@ namespace dr_semu::filesystem::helpers
 		{
 			// If the function fails because lpszFilePath is too small to hold the string plus the terminating null character, the return value is the required buffer size, in TCHARs. 
 			// This value includes the size of the terminating null character.
-			const std::shared_ptr<wchar_t> handle_path{ new wchar_t[number_of_wchar] };
+			const std::shared_ptr<wchar_t> handle_path{new wchar_t[number_of_wchar]};
 			memset(handle_path.get(), 0, number_of_wchar * sizeof(wchar_t));
 
 			number_of_wchar = GetFinalPathNameByHandle(handle, handle_path.get(), number_of_wchar, path_type);
 
 			if (number_of_wchar != 0U)
 			{
-				const std::wstring dos_file_name{ handle_path.get(), number_of_wchar };
+				const std::wstring dos_file_name{handle_path.get(), number_of_wchar};
 				return dos_file_name;
 			}
 		}
@@ -166,13 +166,13 @@ namespace dr_semu::filesystem::helpers
 
 	inline std::wstring get_real_windows_directory()
 	{
-		return std::wstring{ shared_variables::virtual_filesystem_location.wstring()[0] } +L":\\Windows";
+		return std::wstring{shared_variables::virtual_filesystem_location.wstring()[0]} + L":\\Windows";
 	}
 
 	inline bool redirect_system32_to_syswow64(std::wstring& path)
 	{
 		const auto lower_string = utils::to_lower_string(path);
-		const auto& original_path{ lower_string };
+		const auto& original_path{lower_string};
 
 		const auto system32 = LR"(windows\system32)";
 		const auto last_good = LR"(windows\lastgood\system32)";
@@ -197,7 +197,7 @@ namespace dr_semu::filesystem::helpers
 			original_path.find(LR"(windows\system32\drivers\etc)") != std::wstring::npos ||
 			original_path.find(LR"(windows\system32\logfiles)") != std::wstring::npos ||
 			original_path.find(LR"(windows\system32\spool)") != std::wstring::npos
-			)
+		)
 		{
 			path = original_path;
 		}
@@ -224,7 +224,7 @@ namespace dr_semu::filesystem::helpers
 		{
 		}
 
-		auto redirected_string{ harddisk_path };
+		auto redirected_string{harddisk_path};
 
 		redirected_string.replace(0, device_name_size - 1, shared_variables::v_fs_device_form);
 
@@ -237,7 +237,7 @@ namespace dr_semu::filesystem::helpers
 		if (
 			utils::find_case_insensitive(
 				original_path, shared_variables::virtual_filesystem_location.wstring()) != std::wstring::npos
-			)
+		)
 		{
 			relocated_path = original_path;
 			return true;
@@ -298,7 +298,7 @@ namespace dr_semu::filesystem::helpers
 		if (path.find(LR"(\\?\)") != std::wstring::npos
 			|| path.find(LR"(\??\)") != std::wstring::npos
 			|| path.find(LR"(\\.\)") != std::wstring::npos
-			)
+		)
 		{
 			normalized_path = path.substr(4);
 		}
@@ -314,7 +314,7 @@ namespace dr_semu::filesystem::helpers
 		if (utils::find_case_insensitive(virtual_path, LR"(C:\)") != std::wstring::npos &&
 			utils::find_case_insensitive(
 				virtual_path, shared_variables::virtual_filesystem_location.wstring()) == std::wstring::npos
-			)
+		)
 		{
 			dr_printf("[TID: %d] Path should be virtual: %ls\n", tid, virtual_path.c_str());
 			dr_messagebox("investigate path");
@@ -340,7 +340,7 @@ namespace dr_semu::filesystem::helpers
 
 	inline std::wstring get_virtual_system_root_nt_path(const std::wstring& system_root_path)
 	{
-		const std::wstring system_root_name{ LR"(\SystemRoot)" };
+		const std::wstring system_root_name{LR"(\SystemRoot)"};
 		if (utils::find_case_insensitive(system_root_path, system_root_name) != 0)
 		{
 			return {};
@@ -351,7 +351,7 @@ namespace dr_semu::filesystem::helpers
 
 		relocate_path_virtual_fs(windows_directory, virtual_win_dir);
 		virtual_system_root_nt += virtual_win_dir;
-		auto virtual_system_root_full_path{ system_root_path };
+		auto virtual_system_root_full_path{system_root_path};
 		virtual_system_root_full_path.replace(0, system_root_name.length(), virtual_system_root_nt);
 
 		return virtual_system_root_full_path;
@@ -359,7 +359,7 @@ namespace dr_semu::filesystem::helpers
 
 	inline std::wstring syswow64_to_system32(const std::wstring& file_path)
 	{
-		auto return_path{ file_path };
+		auto return_path{file_path};
 		const std::wstring syswow = LR"(\syswow64\)";
 		const auto loc = utils::find_case_insensitive(file_path, syswow);
 		if (loc == std::wstring::npos)
@@ -381,7 +381,7 @@ namespace dr_semu::filesystem::helpers
 		if (
 			utils::find_case_insensitive(
 				original_path, shared_variables::virtual_filesystem_location.wstring()) != std::wstring::npos
-			)
+		)
 		{
 			virtual_path = original_path;
 			return true;
@@ -400,7 +400,7 @@ namespace dr_semu::filesystem::helpers
 		if (
 			original_path.find(LR"(\??\CONIN$)") == 0 ||
 			original_path.find(LR"(\??\CONOUT$)") == 0
-			)
+		)
 		{
 			virtual_path = original_path;
 			return true;
@@ -409,7 +409,7 @@ namespace dr_semu::filesystem::helpers
 
 		// \SystemRoot\WinSxS\file.txt
 		// \??\x:\[virtual_fs]\Windows\WinSxS\file.txt
-		const std::wstring system_root_name{ LR"(\SystemRoot)" };
+		const std::wstring system_root_name{LR"(\SystemRoot)"};
 		if (utils::find_case_insensitive(original_path, system_root_name) == 0)
 		{
 			const auto virtual_system_path = get_virtual_system_root_nt_path(original_path);
@@ -432,7 +432,7 @@ namespace dr_semu::filesystem::helpers
 			return true;
 		}
 
-		if (!dr_semu::networking::config::disable_internet)
+		if (!networking::config::disable_internet)
 		{
 			if (utils::find_case_insensitive(original_path, LR"(\??\Nsi)") == 0)
 			{
@@ -554,12 +554,12 @@ namespace dr_semu::filesystem::helpers
 				CreateDirectory(virtual_path.c_str(), nullptr);
 			}
 			virtual_file_handle = CreateFile(virtual_path.c_str(),
-				desired_access,
-				FILE_SHARE_READ,
-				nullptr,
-				OPEN_EXISTING,
-				FILE_FLAG_BACKUP_SEMANTICS,
-				nullptr);
+			                                 desired_access,
+			                                 FILE_SHARE_READ,
+			                                 nullptr,
+			                                 OPEN_EXISTING,
+			                                 FILE_FLAG_BACKUP_SEMANTICS,
+			                                 nullptr);
 			if (virtual_file_handle != INVALID_HANDLE_VALUE)
 			{
 				return true;
@@ -573,19 +573,19 @@ namespace dr_semu::filesystem::helpers
 		if (!is_existing_virtual)
 		{
 			const auto create_handle = CreateFile(virtual_path.c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr,
-				OPEN_EXISTING, 0, nullptr);
+			                                      OPEN_EXISTING, 0, nullptr);
 			if (create_handle != INVALID_HANDLE_VALUE)
 			{
 				NtClose(create_handle);
 			}
 		}
 		virtual_file_handle = CreateFile(virtual_path.c_str(),
-			desired_access,
-			0,
-			nullptr,
-			OPEN_EXISTING,
-			0,
-			nullptr);
+		                                 desired_access,
+		                                 0,
+		                                 nullptr,
+		                                 OPEN_EXISTING,
+		                                 0,
+		                                 nullptr);
 		if (virtual_file_handle != INVALID_HANDLE_VALUE)
 		{
 			return true;
@@ -605,7 +605,7 @@ namespace dr_semu::filesystem::helpers
 		if (loc != std::wstring::npos)
 		{
 			dr_printf("[redirect_mailslot_string] there should be vm_name in maislot name: %ls\n",
-				mailslot_path.c_str());
+			          mailslot_path.c_str());
 			dr_messagebox("vm_name in maislot name");
 			return true;
 		}
@@ -634,8 +634,8 @@ namespace dr_semu::filesystem::helpers
 			{
 				is_virtual_handle = false;
 				InitializeObjectAttributes(virtual_object_attributes, ptr_object_attributes->ObjectName,
-					ptr_object_attributes->Attributes, ptr_object_attributes->RootDirectory,
-					ptr_object_attributes->SecurityDescriptor);
+				                           ptr_object_attributes->Attributes, ptr_object_attributes->RootDirectory,
+				                           ptr_object_attributes->SecurityDescriptor);
 				virtual_object_attributes->SecurityQualityOfService = ptr_object_attributes->SecurityQualityOfService;
 				return true;
 			}
@@ -668,7 +668,7 @@ namespace dr_semu::filesystem::helpers
 					bool acccess_denied = false;
 					is_virtual_handle =
 						get_virtual_handle_fs(ptr_object_attributes->RootDirectory, virtual_file_handle,
-							acccess_denied);
+						                      acccess_denied);
 					if (acccess_denied)
 					{
 						return false;
@@ -711,8 +711,8 @@ namespace dr_semu::filesystem::helpers
 			RtlCopyUnicodeString(unicode_string, ptr_object_attributes->ObjectName);
 		}
 		InitializeObjectAttributes(virtual_object_attributes, unicode_string, ptr_object_attributes->Attributes,
-			is_virtual_handle ? virtual_file_handle : ptr_object_attributes->RootDirectory,
-			ptr_object_attributes->SecurityDescriptor);
+		                           is_virtual_handle ? virtual_file_handle : ptr_object_attributes->RootDirectory,
+		                           ptr_object_attributes->SecurityDescriptor);
 		virtual_object_attributes->SecurityQualityOfService = ptr_object_attributes->SecurityQualityOfService;
 
 		return true;

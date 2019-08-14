@@ -17,7 +17,7 @@ namespace lua_scan
 
 	inline std::string run_rule(const std::string& lua_script, const std::string& json_path)
 	{
-		const auto lua_state{ luaL_newstate() };
+		const auto lua_state{luaL_newstate()};
 
 		// add standard libs
 		luaL_openlibs(lua_state);

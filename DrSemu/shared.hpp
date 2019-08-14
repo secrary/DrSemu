@@ -46,9 +46,9 @@ namespace dr_semu::shared
 			return (pipe_handle != nullptr) && pipe_handle != INVALID_HANDLE_VALUE;
 		}
 
-		explicit pipe(const std::wstring& pipe_name, const bool create = true) : pipe_name{ pipe_name }
+		explicit pipe(const std::wstring& pipe_name, const bool create = true) : pipe_name{pipe_name}
 		{
-			const auto full_pipe_name = std::wstring{ LR"(\\.\pipe\)" } +pipe_name;
+			const auto full_pipe_name = std::wstring{LR"(\\.\pipe\)"} + pipe_name;
 			if (create)
 			{
 				pipe_handle = CreateNamedPipe(
@@ -80,14 +80,14 @@ namespace dr_semu::shared
 				if (INVALID_HANDLE_VALUE == pipe_handle)
 				{
 					printf("Failed to connect pipe. pipe_name: %ls\nlast err: 0x%lx\n", full_pipe_name.c_str(),
-						GetLastError()); // log to a file
+					       GetLastError()); // log to a file
 				}
 			}
 		}
 
 		_Success_(return)
 
-			[[nodiscard]] bool wait_for_client() const
+		[[nodiscard]] bool wait_for_client() const
 		{
 			// If the function succeeds, the return value is nonzero.
 			return ConnectNamedPipe(pipe_handle, nullptr) != 0;
@@ -113,7 +113,7 @@ namespace dr_semu::shared
 			if (result == 0)
 			{
 				printf("WriteFile [pipe] failed with 0x%lx\npipe_name: %ls\npipe_handle: 0x%lx\n", GetLastError(),
-					pipe_name.c_str(), reinterpret_cast<DWORD>(pipe_handle));
+				       pipe_name.c_str(), reinterpret_cast<DWORD>(pipe_handle));
 				return false;
 			}
 
@@ -122,7 +122,7 @@ namespace dr_semu::shared
 
 		_Success_(return)
 
-			bool read_pipe(__out std::wstring& content) const
+		bool read_pipe(__out std::wstring& content) const
 		{
 			if (!is_valid())
 			{
@@ -141,20 +141,20 @@ namespace dr_semu::shared
 			//	printf("x: %d\n", buffer_size);
 			//} while (buffer_size == 0);
 
-			const std::shared_ptr<byte> message_buffer{ new byte[buffer_size] };
+			const std::shared_ptr<byte> message_buffer{new byte[buffer_size]};
 			memset(message_buffer.get(), 0, buffer_size);
 
 			DWORD read_bytes{};
 			const auto result = ReadFile(pipe_handle,
-				message_buffer.get(),
-				buffer_size,
-				&read_bytes,
-				nullptr);
+			                             message_buffer.get(),
+			                             buffer_size,
+			                             &read_bytes,
+			                             nullptr);
 
 			if (result == 0)
 			{
 				printf("ReadFile [pipe] failed with 0x%lx\npipe_name: %ls\npipe_handle: 0x%lx\n", GetLastError(),
-					pipe_name.c_str(), (DWORD)(pipe_handle));
+				       pipe_name.c_str(), (DWORD)(pipe_handle));
 				MessageBox(nullptr, L"failed", L"", 0);
 				return false;
 			}
@@ -162,13 +162,13 @@ namespace dr_semu::shared
 			if (read_bytes == 0)
 			{
 				printf("ReadFile [pipe] failed (zero length) with 0x%lx\npipe_name: %ls\npipe_handle: 0x%lx\n",
-					GetLastError(), pipe_name.c_str(), (DWORD)pipe_handle);
+				       GetLastError(), pipe_name.c_str(), (DWORD)pipe_handle);
 				MessageBox(nullptr, L"failed", L"", 0);
 				return false;
 			}
 
 			content = std::wstring(reinterpret_cast<PWCHAR>(message_buffer.get()),
-				wcslen(reinterpret_cast<PWCHAR>(message_buffer.get())));
+			                       wcslen(reinterpret_cast<PWCHAR>(message_buffer.get())));
 			return true;
 		}
 
@@ -207,15 +207,15 @@ namespace dr_semu::shared
 		}
 
 		// create a mailslot or open it
-		explicit slot(const std::wstring& mailslot_name, const bool create = true) : mailslot_name{ mailslot_name }
+		explicit slot(const std::wstring& mailslot_name, const bool create = true) : mailslot_name{mailslot_name}
 		{
-			const auto full_mailslot_name = std::wstring{ LR"(\\.\mailslot\)" } +mailslot_name;
+			const auto full_mailslot_name = std::wstring{LR"(\\.\mailslot\)"} + mailslot_name;
 			if (create)
 			{
 				slot_handle = CreateMailslot(full_mailslot_name.c_str(),
-					0, // no maximum message size 
-					MAILSLOT_WAIT_FOREVER, // no time-out for operations 
-					nullptr); // default security
+				                             0, // no maximum message size 
+				                             MAILSLOT_WAIT_FOREVER, // no time-out for operations 
+				                             nullptr); // default security
 
 				if (slot_handle == INVALID_HANDLE_VALUE)
 				{
@@ -225,12 +225,12 @@ namespace dr_semu::shared
 			else
 			{
 				slot_handle = CreateFile(full_mailslot_name.c_str(),
-					GENERIC_WRITE,
-					FILE_SHARE_READ | FILE_SHARE_WRITE,
-					nullptr,
-					OPEN_EXISTING,
-					FILE_ATTRIBUTE_NORMAL,
-					nullptr);
+				                         GENERIC_WRITE,
+				                         FILE_SHARE_READ | FILE_SHARE_WRITE,
+				                         nullptr,
+				                         OPEN_EXISTING,
+				                         FILE_ATTRIBUTE_NORMAL,
+				                         nullptr);
 
 				if (slot_handle == INVALID_HANDLE_VALUE)
 				{
@@ -248,15 +248,15 @@ namespace dr_semu::shared
 
 			DWORD number_of_bytes_written{};
 			const auto result = WriteFile(slot_handle,
-				content.c_str(),
-				static_cast<DWORD>(content.length() + 1) * sizeof(TCHAR),
-				&number_of_bytes_written,
-				nullptr);
+			                              content.c_str(),
+			                              static_cast<DWORD>(content.length() + 1) * sizeof(TCHAR),
+			                              &number_of_bytes_written,
+			                              nullptr);
 
 			if (result == 0)
 			{
 				printf("WriteFile [slot] failed with 0x%lx\nhandle: 0x%lx\n", GetLastError(),
-					reinterpret_cast<DWORD_PTR>(slot_handle));
+				       reinterpret_cast<DWORD_PTR>(slot_handle));
 				return false;
 			}
 
@@ -265,7 +265,7 @@ namespace dr_semu::shared
 
 		_Success_(return)
 
-			bool read_slot(__out std::wstring& content) const
+		bool read_slot(__out std::wstring& content) const
 		{
 			if (!is_valid())
 			{
@@ -277,27 +277,28 @@ namespace dr_semu::shared
 			do
 			{
 				const auto result = GetMailslotInfo(slot_handle, // mailslot handle 
-					nullptr, // no maximum message size 
-					&next_message_size_bytes, // size of next message 
-					nullptr, // number of messages 
-					nullptr); // no read time-out 
+				                                    nullptr, // no maximum message size 
+				                                    &next_message_size_bytes, // size of next message 
+				                                    nullptr, // number of messages 
+				                                    nullptr); // no read time-out 
 				if (result == 0)
 				{
 					printf("GetMailslotInfo [slot] failed with 0x%lx\n", GetLastError());
 					return false;
 				}
 				Sleep(1 SECONDS);
-			} while (next_message_size_bytes == MAILSLOT_NO_MESSAGE);
+			}
+			while (next_message_size_bytes == MAILSLOT_NO_MESSAGE);
 
-			const std::shared_ptr<byte> message_buffer{ new byte[next_message_size_bytes] };
+			const std::shared_ptr<byte> message_buffer{new byte[next_message_size_bytes]};
 			memset(message_buffer.get(), 0, next_message_size_bytes);
 
 			DWORD read_bytes{};
 			const auto result = ReadFile(slot_handle,
-				message_buffer.get(),
-				next_message_size_bytes,
-				&read_bytes,
-				nullptr);
+			                             message_buffer.get(),
+			                             next_message_size_bytes,
+			                             &read_bytes,
+			                             nullptr);
 
 			if (result == 0)
 			{
@@ -306,7 +307,7 @@ namespace dr_semu::shared
 			}
 
 			content = std::wstring(reinterpret_cast<PWCHAR>(message_buffer.get()),
-				wcslen(reinterpret_cast<PWCHAR>(message_buffer.get())));
+			                       wcslen(reinterpret_cast<PWCHAR>(message_buffer.get())));
 			return true;
 		}
 

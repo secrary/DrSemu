@@ -63,8 +63,8 @@ void dir_info::sort_entries_and_mark_filled()
 	is_entries_filled = true;
 
 	std::sort(entries_.begin(),
-		entries_.end(),
-		file_name_less_than);
+	          entries_.end(),
+	          file_name_less_than);
 }
 
 void dir_info::fill_entry(const dir_entry& entry)

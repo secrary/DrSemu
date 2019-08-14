@@ -101,8 +101,8 @@ namespace dr_semu::registry::handlers
 		const auto is_virtual_handle = helpers::get_virtual_handle(HKEY(key_handle), virtual_handle);
 
 		const auto return_result = NtQueryMultipleValueKey(is_virtual_handle ? virtual_handle : key_handle,
-			value_entries, entry_count, value_buffer, buffer_length,
-			required_buffer_length);
+		                                                   value_entries, entry_count, value_buffer, buffer_length,
+		                                                   required_buffer_length);
 
 		if (is_virtual_handle)
 		{
@@ -323,13 +323,13 @@ namespace dr_semu::registry::handlers
 		std::wstring trace_string{};
 		auto virtual_object_attributes = helpers::
 			get_virtual_object_attributes_reg(ptr_object_attributes, cross_access, is_virtual_handle, trace_string,
-				is_deleted);
+			                                  is_deleted);
 
 		const auto return_status = NtOpenKeyTransactedEx(ptr_out_key_handle, desired_access,
-			is_deleted
-			? ptr_object_attributes
-			: &virtual_object_attributes, open_options,
-			transaction_handle);
+		                                                 is_deleted
+			                                                 ? ptr_object_attributes
+			                                                 : &virtual_object_attributes, open_options,
+		                                                 transaction_handle);
 
 		if (is_virtual_handle)
 		{
@@ -368,11 +368,11 @@ namespace dr_semu::registry::handlers
 		std::wstring trace_string{};
 		auto virtual_object_attributes = helpers::
 			get_virtual_object_attributes_reg(ptr_object_attributes, cross_access, is_virtual_handle, trace_string,
-				is_deleted);
+			                                  is_deleted);
 
 		const auto return_status = NtOpenKeyTransacted(ptr_out_key_handle, desired_access,
-			is_deleted ? ptr_object_attributes : &virtual_object_attributes,
-			transaction_handle);
+		                                               is_deleted ? ptr_object_attributes : &virtual_object_attributes,
+		                                               transaction_handle);
 
 		if (is_virtual_handle)
 		{
@@ -420,14 +420,14 @@ namespace dr_semu::registry::handlers
 		std::wstring trace_string{};
 		auto virtual_object_attributes = helpers::
 			get_virtual_object_attributes_reg(ptr_object_attributes, cross_access, is_virtual_handle, trace_string,
-				is_deleted);
+			                                  is_deleted);
 
 		const auto return_result = NtCreateKeyTransacted(ptr_out_key_handle, desired_access,
-			is_deleted
-			? ptr_object_attributes
-			: &virtual_object_attributes,
-			title_index, reg_class, creation_options, transaction_handle,
-			ptr_out_disposition);
+		                                                 is_deleted
+			                                                 ? ptr_object_attributes
+			                                                 : &virtual_object_attributes,
+		                                                 title_index, reg_class, creation_options, transaction_handle,
+		                                                 ptr_out_disposition);
 
 		if (is_virtual_handle)
 		{
@@ -544,8 +544,8 @@ namespace dr_semu::registry::handlers
 		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle);
 
 		const auto return_status = NtNotifyChangeKey(is_virtual_handle ? virtual_handle : key_handle, key_event,
-			ptr_apc_routine, apt_context, ptr_io_status_block,
-			completion_filter, watch_tree, buffer, buffer_size, asynchronous);
+		                                             ptr_apc_routine, apt_context, ptr_io_status_block,
+		                                             completion_filter, watch_tree, buffer, buffer_size, asynchronous);
 
 		if (is_virtual_handle)
 		{
@@ -583,11 +583,11 @@ namespace dr_semu::registry::handlers
 		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle);
 
 		const auto return_status = NtSetValueKey(is_virtual_handle ? virtual_handle : key_handle, value_name,
-			title_index, type, data, data_size);
+		                                         title_index, type, data, data_size);
 
 		auto is_unnamed = false;
 		const auto handle_name = utils::get_name_from_handle(is_virtual_handle ? virtual_handle : key_handle,
-			is_unnamed);
+		                                                     is_unnamed);
 
 		//dr_printf("x: %ls\\%ls\n", handle_name.c_str(), value_name->Buffer);
 
@@ -625,8 +625,8 @@ namespace dr_semu::registry::handlers
 		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle);
 
 		const auto result_status = NtEnumerateValueKey(is_virtual_handle ? virtual_handle : key_handle,
-			index, value_information_class, ptr_out_value_information,
-			length, ptr_out_result_length);
+		                                               index, value_information_class, ptr_out_value_information,
+		                                               length, ptr_out_result_length);
 
 		if (is_virtual_handle)
 		{
@@ -638,10 +638,10 @@ namespace dr_semu::registry::handlers
 	}
 
 	inline bool enumerate_key_internal(void* drcontext, HANDLE key_handle, const ULONG index,
-		KEY_INFORMATION_CLASS key_information_class,
-		/*_Out_writes_bytes_opt_*/ PVOID ptr_out_key_information, ULONG length,
-		PULONG ptr_out_result_length,
-		const bool is_valid_index)
+	                                   KEY_INFORMATION_CLASS key_information_class,
+	                                   /*_Out_writes_bytes_opt_*/ PVOID ptr_out_key_information, ULONG length,
+	                                   PULONG ptr_out_result_length,
+	                                   const bool is_valid_index)
 	{
 		DWORD result_status = STATUS_SUCCESS;
 
@@ -653,14 +653,14 @@ namespace dr_semu::registry::handlers
 		if (is_valid_index)
 		{
 			result_status = NtEnumerateKey(is_virtual_handle ? virtual_reg_handle : key_handle, index,
-				key_information_class,
-				ptr_out_key_information, length, ptr_out_result_length);
+			                               key_information_class,
+			                               ptr_out_key_information, length, ptr_out_result_length);
 		}
 
 		else
 		{
 			result_status = NtQueryKey(is_virtual_handle ? virtual_reg_handle : key_handle, key_information_class,
-				ptr_out_key_information, length, ptr_out_result_length);
+			                           ptr_out_key_information, length, ptr_out_result_length);
 			// return "real" path
 			if (NT_SUCCESS(result_status) && (ptr_out_key_information != nullptr))
 			{
@@ -669,49 +669,49 @@ namespace dr_semu::registry::handlers
 					// reverted name always should be smaller
 					auto ptr_name_information = static_cast<PKEY_NAME_INFORMATION>(ptr_out_key_information);
 					const std::wstring name(ptr_name_information->Name,
-						ptr_name_information->NameLength / sizeof(WCHAR));
+					                        ptr_name_information->NameLength / sizeof(WCHAR));
 					const auto reverted_name = helpers::original_to_virtual_reg(name, true);
 
 					memset(ptr_name_information->Name, 0, ptr_name_information->NameLength);
 					ptr_name_information->NameLength = reverted_name.length() * sizeof(WCHAR);
 					memcpy_s(ptr_name_information->Name, ptr_name_information->NameLength, reverted_name.data(),
-						reverted_name.length() * sizeof(WCHAR));
+					         reverted_name.length() * sizeof(WCHAR));
 				}
 				else if (key_information_class == KeyBasicInformation)
 				{
 					auto ptr_basic_information = static_cast<PKEY_BASIC_INFORMATION>(ptr_out_key_information);
 					const std::wstring name(ptr_basic_information->Name,
-						ptr_basic_information->NameLength / sizeof(WCHAR));
+					                        ptr_basic_information->NameLength / sizeof(WCHAR));
 					const auto reverted_name = helpers::original_to_virtual_reg(name, true);
 
 					memset(ptr_basic_information->Name, 0, ptr_basic_information->NameLength);
 					ptr_basic_information->NameLength = reverted_name.length() * sizeof(WCHAR);
 					memcpy_s(ptr_basic_information->Name, ptr_basic_information->NameLength, reverted_name.data(),
-						reverted_name.length() * sizeof(WCHAR));
+					         reverted_name.length() * sizeof(WCHAR));
 				}
 				else if (key_information_class == KeyCachedInformation)
 				{
 					auto ptr_cached_information = static_cast<PKEY_CACHED_INFORMATION>(ptr_out_key_information);
 					const std::wstring name(ptr_cached_information->Name,
-						ptr_cached_information->NameLength / sizeof(WCHAR));
+					                        ptr_cached_information->NameLength / sizeof(WCHAR));
 					const auto reverted_name = helpers::original_to_virtual_reg(name, true);
 
 					memset(ptr_cached_information->Name, 0, ptr_cached_information->NameLength);
 					ptr_cached_information->NameLength = reverted_name.length() * sizeof(WCHAR);
 					memcpy_s(ptr_cached_information->Name, ptr_cached_information->NameLength, reverted_name.data(),
-						reverted_name.length() * sizeof(WCHAR));
+					         reverted_name.length() * sizeof(WCHAR));
 				}
 				else if (key_information_class == KeyNodeInformation)
 				{
 					auto ptr_node_information = static_cast<PKEY_NODE_INFORMATION>(ptr_out_key_information);
 					const std::wstring name(ptr_node_information->Name,
-						ptr_node_information->NameLength / sizeof(WCHAR));
+					                        ptr_node_information->NameLength / sizeof(WCHAR));
 					const auto reverted_name = helpers::original_to_virtual_reg(name, true);
 
 					memset(ptr_node_information->Name, 0, ptr_node_information->NameLength);
 					ptr_node_information->NameLength = reverted_name.length() * sizeof(WCHAR);
 					memcpy_s(ptr_node_information->Name, ptr_node_information->NameLength, reverted_name.data(),
-						reverted_name.length() * sizeof(WCHAR));
+					         reverted_name.length() * sizeof(WCHAR));
 				}
 			}
 		}
@@ -766,7 +766,7 @@ namespace dr_semu::registry::handlers
 		const auto ptr_out_result_length = PULONG(dr_syscall_get_param(drcontext, 5)); // ResultLength
 
 		return enumerate_key_internal(drcontext, key_handle, index, key_information_class, ptr_out_key_information,
-			length, ptr_out_result_length, true);
+		                              length, ptr_out_result_length, true);
 	}
 
 	inline bool NtQueryKey_handler(void* drcontext)
@@ -790,7 +790,7 @@ namespace dr_semu::registry::handlers
 		const auto ptr_out_result_length = PULONG(dr_syscall_get_param(drcontext, 4)); // ResultLength
 
 		return enumerate_key_internal(drcontext, key_handle, 0, key_information_class, ptr_out_key_information,
-			length, ptr_out_result_length, false);
+		                              length, ptr_out_result_length, false);
 	}
 
 	inline bool NtQueryValueKey_handler(void* drcontext)
@@ -818,13 +818,13 @@ namespace dr_semu::registry::handlers
 		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle);
 
 		const auto return_status = NtQueryValueKey(is_virtual_handle ? virtual_handle : key_handle, value_name,
-			information_class, ptr_out_key_value_information, length,
-			ptr_out_result_length);
+		                                           information_class, ptr_out_key_value_information, length,
+		                                           ptr_out_result_length);
 		const auto is_success = NT_SUCCESS(return_status);
 
 		bool is_unnamed = false;
 		const auto handle_name = utils::get_name_from_handle(is_virtual_handle ? virtual_handle : key_handle,
-			is_unnamed);
+		                                                     is_unnamed);
 		//if (!is_success) 
 		//	dr_printf("x: %ls\\%ls\nstatus: 0x%lx\n", handle_name.c_str(), value_name->Buffer, return_status);
 
@@ -841,7 +841,7 @@ namespace dr_semu::registry::handlers
 				if (
 					ptr_full_information->Type == REG_SZ ||
 					ptr_full_information->Type == REG_MULTI_SZ
-					)
+				)
 				{
 					//dr_printf("f: %ls\n", ptr_data);
 				}
@@ -849,12 +849,12 @@ namespace dr_semu::registry::handlers
 			else if (information_class == KeyValuePartialInformation)
 			{
 				auto ptr_partial_information = static_cast<PKEY_VALUE_PARTIAL_INFORMATION>(ptr_out_key_value_information
-					);
+				);
 				auto ptr_data = ptr_partial_information->Data;
 				if (
 					ptr_partial_information->Type == REG_SZ ||
 					ptr_partial_information->Type == REG_MULTI_SZ
-					)
+				)
 				{
 					//dr_printf("p: %ls\n", ptr_data);
 				}
@@ -970,11 +970,11 @@ namespace dr_semu::registry::handlers
 		std::wstring trace_string{};
 		auto virtual_object_attributes = helpers::
 			get_virtual_object_attributes_reg(ptr_object_attributes, cross_access, is_virtual_handle, trace_string,
-				is_deleted);
+			                                  is_deleted);
 
 		const auto return_result = NtCreateKey(ptr_out_key_handle, desired_access,
-			is_deleted ? ptr_object_attributes : &virtual_object_attributes,
-			title_index, reg_class, creation_options, ptr_out_disposition);
+		                                       is_deleted ? ptr_object_attributes : &virtual_object_attributes,
+		                                       title_index, reg_class, creation_options, ptr_out_disposition);
 
 		if (is_virtual_handle)
 		{
@@ -997,8 +997,8 @@ namespace dr_semu::registry::handlers
 	}
 
 	inline bool open_key_internal(void* drcontext, PHANDLE ptr_out_key_handle, ACCESS_MASK desired_access,
-		const POBJECT_ATTRIBUTES ptr_object_attributes, const ULONG open_options,
-		const bool is_ex = false)
+	                              const POBJECT_ATTRIBUTES ptr_object_attributes, const ULONG open_options,
+	                              const bool is_ex = false)
 	{
 #if defined(_WIN64)
 		const auto cross_access = (desired_access & KEY_WOW64_32KEY) != 0U;
@@ -1011,11 +1011,11 @@ namespace dr_semu::registry::handlers
 		std::wstring trace_string{};
 		auto virtual_object_attributes = helpers::
 			get_virtual_object_attributes_reg(ptr_object_attributes, cross_access, is_virtual_handle, trace_string,
-				is_deleted);
+			                                  is_deleted);
 
 		const auto return_status = NtOpenKeyEx(ptr_out_key_handle, desired_access,
-			is_deleted ? ptr_object_attributes : &virtual_object_attributes,
-			open_options);
+		                                       is_deleted ? ptr_object_attributes : &virtual_object_attributes,
+		                                       open_options);
 		const auto is_success = NT_SUCCESS(return_status);
 
 		if (is_virtual_handle)
@@ -1060,7 +1060,7 @@ namespace dr_semu::registry::handlers
 		const auto open_options = ULONG(dr_syscall_get_param(drcontext, 3)); // OpenOptions
 
 		return open_key_internal(drcontext, ptr_out_key_handle, desired_access, ptr_object_attributes, open_options,
-			true);
+		                         true);
 	}
 
 	inline bool NtOpenKey_handler(void* drcontext)
@@ -1079,6 +1079,6 @@ namespace dr_semu::registry::handlers
 		const auto ptr_object_attributes = POBJECT_ATTRIBUTES(dr_syscall_get_param(drcontext, 2)); // ObjectAttributes
 
 		return open_key_internal(drcontext, ptr_out_key_handle, desired_access, ptr_object_attributes,
-			0);
+		                         0);
 	}
 } // namespace dr_semu::registry::handlers

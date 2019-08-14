@@ -132,7 +132,7 @@ namespace dr_semu::system::handlers
 		const auto ptr_out_opt_length = PULONG(dr_syscall_get_param(drcontext, 3)); // ReturnLength
 
 		const auto return_status = NtQuerySystemInformation(information_class, ptr_out_opt_system_information,
-			information_length, ptr_out_opt_length);
+		                                                    information_length, ptr_out_opt_length);
 		const auto is_success = NT_SUCCESS(return_status) ? true : false;
 
 		/// trace 
@@ -160,7 +160,7 @@ namespace dr_semu::system::handlers
 				// ptr_system_info_current->ImageName.Buffer ==> process name
 				std::wstring process_name{};
 				const auto is_valid = utils::unicode_string_to_wstring(&ptr_system_info_current->ImageName,
-					process_name);
+				                                                       process_name);
 				if (is_valid)
 				{
 					// unlink Dr.Semu related process names

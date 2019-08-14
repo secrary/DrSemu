@@ -89,15 +89,15 @@ public:
 
 	// Send file meta data information to ProjFS, ProjFS will create an on-disk placeholder for the path.
 	HRESULT WritePlaceholderInfo(LPCWSTR relativePath,
-		const PRJ_PLACEHOLDER_INFO* placeholderInfo,
-		DWORD length);
+	                             const PRJ_PLACEHOLDER_INFO* placeholderInfo,
+	                             DWORD length);
 
 	// Send file contents to ProjFS, ProjFS will write the data into the target placeholder file
 	// and convert it to hydrated placeholder state.
 	HRESULT WriteFileData(LPCGUID streamId,
-		PVOID buffer,
-		ULONGLONG byteOffset,
-		DWORD length);
+	                      PVOID buffer,
+	                      ULONGLONG byteOffset,
+	                      DWORD length);
 
 protected:
 

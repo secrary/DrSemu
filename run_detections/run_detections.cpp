@@ -44,7 +44,7 @@ int wmain(int argc, wchar_t** argv)
 	/// lua rules
 	// save json.lua file from https://github.com/rxi/json.lua under current_loc\lua\json.lua
 	// otherwise it downloads from the Github
-	fs::path lua_json_path{ current_location + LR"(lua\json.lua)" };
+	fs::path lua_json_path{current_location + LR"(lua\json.lua)"};
 	if (!exists(lua_json_path))
 	{
 		const auto lua_dir = lua_json_path.parent_path();
@@ -52,7 +52,7 @@ int wmain(int argc, wchar_t** argv)
 		{
 			create_directory(lua_dir);
 		}
-		std::wstring lua_json_github{ LR"(https://raw.githubusercontent.com/rxi/json.lua/master/json.lua)" };
+		std::wstring lua_json_github{LR"(https://raw.githubusercontent.com/rxi/json.lua/master/json.lua)"};
 		if (S_OK != URLDownloadToFile(nullptr, lua_json_github.c_str(), lua_json_path.c_str(), 0, nullptr))
 		{
 			printf(
@@ -63,7 +63,7 @@ int wmain(int argc, wchar_t** argv)
 		}
 	}
 	// iterate rules
-	fs::path lua_rules{ current_location + L"lua_rules" };
+	fs::path lua_rules{current_location + L"lua_rules"};
 	if (!exists(lua_rules))
 	{
 		create_directory(lua_rules);

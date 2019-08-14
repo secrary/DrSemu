@@ -27,9 +27,9 @@ namespace registry
 
 		// Create a well-known SID for the Everyone group.
 		if (!AllocateAndInitializeSid(&SIDAuthWorld, 1,
-			SECURITY_WORLD_RID,
-			0, 0, 0, 0, 0, 0, 0,
-			&pEveryoneSID))
+		                              SECURITY_WORLD_RID,
+		                              0, 0, 0, 0, 0, 0, 0,
+		                              &pEveryoneSID))
 		{
 			spdlog::error("AllocateAndInitializeSid Error {}", GetLastError());
 			return security_attributes;
@@ -46,10 +46,10 @@ namespace registry
 
 		// Create a SID for the BUILTIN\Administrators group.
 		if (!AllocateAndInitializeSid(&SIDAuthNT, 2,
-			SECURITY_BUILTIN_DOMAIN_RID,
-			DOMAIN_ALIAS_RID_ADMINS,
-			0, 0, 0, 0, 0, 0,
-			&pAdminSID))
+		                              SECURITY_BUILTIN_DOMAIN_RID,
+		                              DOMAIN_ALIAS_RID_ADMINS,
+		                              0, 0, 0, 0, 0, 0,
+		                              &pAdminSID))
 		{
 			spdlog::error("AllocateAndInitializeSid Error {}", GetLastError());
 			return security_attributes;
@@ -75,7 +75,7 @@ namespace registry
 
 		// Initialize a security descriptor.  
 		pSD = static_cast<PSECURITY_DESCRIPTOR>(LocalAlloc(LPTR,
-			SECURITY_DESCRIPTOR_MIN_LENGTH));
+		                                                   SECURITY_DESCRIPTOR_MIN_LENGTH));
 		if (nullptr == pSD)
 		{
 			spdlog::error("LocalAlloc Error {}", GetLastError());
@@ -83,7 +83,7 @@ namespace registry
 		}
 
 		if (!InitializeSecurityDescriptor(pSD,
-			SECURITY_DESCRIPTOR_REVISION))
+		                                  SECURITY_DESCRIPTOR_REVISION))
 		{
 			spdlog::error("InitializeSecurityDescriptor Error {}", GetLastError());
 			return security_attributes;
@@ -91,9 +91,9 @@ namespace registry
 
 		// Add the ACL to the security descriptor. 
 		if (!SetSecurityDescriptorDacl(pSD,
-			TRUE, // bDaclPresent flag   
-			pACL,
-			FALSE)) // not a default DACL 
+		                               TRUE, // bDaclPresent flag   
+		                               pACL,
+		                               FALSE)) // not a default DACL 
 		{
 			spdlog::error("SetSecurityDescriptorDacl Error {}", GetLastError());
 			return security_attributes;
@@ -160,29 +160,29 @@ namespace registry
 
 
 			auto async_result_machine = std::async(std::launch::async, [&]()
-				{
-					// HKEY_LOCAL_MACHINE	
-					const auto local_machine = virtual_reg_temp + L"\\HKEY_LOCAL_MACHINE";
-					HKEY local_machine_key{};
-					//status = RegCreateKey(HKEY_LOCAL_MACHINE, local_machine.c_str(), &local_machine_key);
-					status = RegCreateKeyEx(HKEY_LOCAL_MACHINE, local_machine.c_str(), 0L, nullptr, REG_OPTION_NON_VOLATILE,
-						KEY_WRITE, &this->security_attributes, &local_machine_key, nullptr);
-					reg_clone_branch(HKEY_LOCAL_MACHINE, local_machine_key);
-					RegCloseKey(local_machine_key);
-				});
+			{
+				// HKEY_LOCAL_MACHINE	
+				const auto local_machine = virtual_reg_temp + L"\\HKEY_LOCAL_MACHINE";
+				HKEY local_machine_key{};
+				//status = RegCreateKey(HKEY_LOCAL_MACHINE, local_machine.c_str(), &local_machine_key);
+				status = RegCreateKeyEx(HKEY_LOCAL_MACHINE, local_machine.c_str(), 0L, nullptr, REG_OPTION_NON_VOLATILE,
+				                        KEY_WRITE, &this->security_attributes, &local_machine_key, nullptr);
+				reg_clone_branch(HKEY_LOCAL_MACHINE, local_machine_key);
+				RegCloseKey(local_machine_key);
+			});
 
 			auto async_result_user = std::async(std::launch::async, [&]()
-				{
-					// HKEY_USERS
-					const auto users_key_path = virtual_reg_temp + L"\\HKEY_USERS";
-					HKEY users_key{};
-					//status = RegCreateKey(HKEY_LOCAL_MACHINE, users_key_path.c_str(), &users_key);
-					status = RegCreateKeyEx(HKEY_LOCAL_MACHINE, users_key_path.c_str(), 0L, nullptr,
-						REG_OPTION_NON_VOLATILE,
-						KEY_WRITE, &this->security_attributes, &users_key, nullptr);
-					reg_clone_branch(HKEY_USERS, users_key);
-					RegCloseKey(users_key);
-				});
+			{
+				// HKEY_USERS
+				const auto users_key_path = virtual_reg_temp + L"\\HKEY_USERS";
+				HKEY users_key{};
+				//status = RegCreateKey(HKEY_LOCAL_MACHINE, users_key_path.c_str(), &users_key);
+				status = RegCreateKeyEx(HKEY_LOCAL_MACHINE, users_key_path.c_str(), 0L, nullptr,
+				                        REG_OPTION_NON_VOLATILE,
+				                        KEY_WRITE, &this->security_attributes, &users_key, nullptr);
+				reg_clone_branch(HKEY_USERS, users_key);
+				RegCloseKey(users_key);
+			});
 
 			async_result_machine.wait();
 			async_result_user.wait();
@@ -208,7 +208,8 @@ namespace registry
 			}
 			else
 			{
-				spdlog::error("[Virtual_FS_REG] Failed to delete temporary Registry hive. last error: {}", GetLastError());
+				spdlog::error("[Virtual_FS_REG] Failed to delete temporary Registry hive. last error: {}",
+				              GetLastError());
 			}
 		}
 
@@ -235,7 +236,7 @@ namespace registry
 		{
 			is_loaded = true;
 		}
-		virtual_reg_root = std::wstring{ LR"(HKEY_LOCAL_MACHINE\)" } +vm_prefix;
+		virtual_reg_root = std::wstring{LR"(HKEY_LOCAL_MACHINE\)"} + vm_prefix;
 	}
 
 	/// Source: https://www.compuphase.com/regclone.htm
@@ -253,7 +254,7 @@ namespace registry
 
 		/* get information, so that we know how much memory to allocate */
 		status = RegQueryInfoKey(root_key_src, nullptr, nullptr, nullptr, &sub_keys, &max_key_len,
-			nullptr, &values, &max_value_len, &max_data_len, nullptr, nullptr);
+		                         nullptr, &values, &max_value_len, &max_data_len, nullptr, nullptr);
 		if (status != ERROR_SUCCESS)
 		{
 			return status;
@@ -269,7 +270,7 @@ namespace registry
 			max_key_len = max_value_len;
 		}
 
-		const std::shared_ptr<TCHAR> name_ptr{ new TCHAR[max_key_len] };
+		const std::shared_ptr<TCHAR> name_ptr{new TCHAR[max_key_len]};
 		std::shared_ptr<BYTE> data_ptr = nullptr;
 		if (name_ptr == nullptr)
 		{
@@ -277,7 +278,7 @@ namespace registry
 		}
 		if (max_data_len > 0)
 		{
-			data_ptr = std::shared_ptr<BYTE>{ new BYTE[max_data_len] };
+			data_ptr = std::shared_ptr<BYTE>{new BYTE[max_data_len]};
 			if (data_ptr == nullptr)
 			{
 				return ERROR_NOT_ENOUGH_MEMORY;
@@ -295,7 +296,7 @@ namespace registry
 			auto data_size = max_data_len;
 
 			status = RegEnumValue(root_key_src, index, name_ptr.get(), &name_size, nullptr, &type, data_ptr.get(),
-				&data_size);
+			                      &data_size);
 
 			if (status != ERROR_SUCCESS)
 			{
@@ -316,7 +317,7 @@ namespace registry
 			status = RegEnumKeyEx(root_key_src, index, name_ptr.get(), &name_size, nullptr, nullptr, nullptr, nullptr);
 			std::wstring temp_key_name = L"dr_semu_virtual_registry";
 			// TODO (lasha): move regclone as a function to virtual_reg
-			if (const std::wstring virtual_reg{ name_ptr.get() }; virtual_reg.find(temp_key_name) != std::wstring::npos)
+			if (const std::wstring virtual_reg{name_ptr.get()}; virtual_reg.find(temp_key_name) != std::wstring::npos)
 			{
 				continue;
 			}
@@ -331,14 +332,14 @@ namespace registry
 				{
 					// if ERROR_ACCESS_DENIED create empty key
 					status = RegCreateKeyEx(root_key_dest, name_ptr.get(), 0L, nullptr, REG_OPTION_NON_VOLATILE,
-						KEY_WRITE, &this->security_attributes, &hkey_dest, nullptr);
+					                        KEY_WRITE, &this->security_attributes, &hkey_dest, nullptr);
 					RegCloseKey(hkey_dest);
 				}
 				continue;
 			}
 
 			status = RegCreateKeyExW(root_key_dest, name_ptr.get(), 0L, nullptr, REG_OPTION_NON_VOLATILE,
-				KEY_WRITE, &this->security_attributes, &hkey_dest, nullptr);
+			                         KEY_WRITE, &this->security_attributes, &hkey_dest, nullptr);
 			if (status != ERROR_SUCCESS)
 			{
 				//printf("0x%x %ls\n", root_key_dest, name_ptr.get());

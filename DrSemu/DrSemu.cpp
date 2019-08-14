@@ -56,7 +56,7 @@ inline std::wstring get_virtual_root_device_form()
 
 	const std::wstring device_path(device_name, wcslen(device_name));
 
-	return device_path + std::wstring{ dr_semu::shared_variables::virtual_filesystem_location, 2 };
+	return device_path + std::wstring{dr_semu::shared_variables::virtual_filesystem_location, 2};
 }
 
 inline std::vector<std::wstring> get_drive_strings();
@@ -90,8 +90,8 @@ static bool
 soft_kill_event(process_id_t pid, int exit_code)
 {
 	const auto result = dr_nudge_client_ex(pid, client_id,
-		NUDGE_TERMINATE_PROCESS | static_cast<uint64>(exit_code) << 32,
-		0);
+	                                       NUDGE_TERMINATE_PROCESS | static_cast<uint64>(exit_code) << 32,
+	                                       0);
 	// if false, a target is not under DR
 	return result == DR_SUCCESS;
 }
@@ -117,7 +117,7 @@ DR_EXPORT void
 dr_client_main(client_id_t id, int argc, const char* argv[])
 {
 	dr_set_client_name("Dr.Semu",
-		"https://secrary.com");
+	                   "https://github.com/secrary/DrSemu");
 
 	drmgr_init();
 	drwrap_init();
@@ -136,17 +136,17 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 	/// https://dynamorio.org/docs/page_droption.html
 	droption_t<unsigned int> vm_index_option(DROPTION_SCOPE_CLIENT, "vm", 0, "vm index", "VM index number");
 	droption_t<unsigned int> dumb_pid_option(DROPTION_SCOPE_CLIENT, "pid", 0, "dumb explorer pid",
-		"dumb explorer pid [LONG DESC]");
+	                                         "dumb explorer pid [LONG DESC]");
 	droption_t<std::string> binaries_dir_option(DROPTION_SCOPE_CLIENT, "bin", "", "bin_dir",
-		"location of binaries");
+	                                            "location of binaries");
 	droption_t<std::string> temp_directory(DROPTION_SCOPE_CLIENT, "dir", "", "VM location",
-		"VM directory for current instance");
+	                                       "VM directory for current instance");
 	droption_t<std::string> report_name_option(DROPTION_SCOPE_CLIENT, "report", "", "report name",
-		"report directory name");
+	                                           "report directory name");
 	droption_t<std::string> main_mailslot_name_option(DROPTION_SCOPE_CLIENT, "main_slot", "", "main mailslot",
-		"main mailslot name");
+	                                                  "main mailslot name");
 	droption_t<unsigned int> timeout_option(DROPTION_SCOPE_CLIENT, "timeout", 0, "timeout",
-		"target application will die after _TIMEOUT_");
+	                                        "target application will die after _TIMEOUT_");
 
 	dr_semu::networking::config::disable_internet = false;
 
@@ -168,13 +168,13 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 	}
 	const auto mailslot_name_string = main_mailslot_name_option.get_value();
 	dr_semu::shared_variables::main_launcher_slot_name = std::wstring(mailslot_name_string.begin(),
-		mailslot_name_string.end());
+	                                                                  mailslot_name_string.end());
 	const auto binary_directory_string = binaries_dir_option.get_value();
 	dr_semu::shared_variables::binary_directory = std::wstring(binary_directory_string.begin(),
-		binary_directory_string.end());
+	                                                           binary_directory_string.end());
 	const auto report_directory_name_string = report_name_option.get_value();
 	dr_semu::shared_variables::report_directory_name = std::wstring(report_directory_name_string.begin(),
-		report_directory_name_string.end());
+	                                                                report_directory_name_string.end());
 	timeout_ms = timeout_option.get_value();
 
 	//dr_printf("Explorer ID: %d\nmain: %ls\nbin_dir: %ls\nreport: %ls\n",
@@ -187,7 +187,7 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 		dr_semu::shared_variables::main_launcher_slot_name.empty() ||
 		dr_semu::shared_variables::binary_directory.empty() ||
 		dr_semu::shared_variables::report_directory_name.empty()
-		)
+	)
 	{
 		dr_printf("[Dr.Semu] Invalid parameters\n");
 		dr_messagebox("[Dr.Semu] invalid arguments");
@@ -235,10 +235,11 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 	{
 		if (!is_explorer)
 		{
-			if (!dr_semu::static_info::get_static_info_and_arch(application_full_path, dr_semu::shared_variables::current_app_arch))
+			if (!dr_semu::static_info::get_static_info_and_arch(application_full_path,
+			                                                    dr_semu::shared_variables::current_app_arch))
 			{
 				dr_printf("[Dr.Semu] failed to get a static information\npath: %s\n",
-					application_full_path.c_str());
+				          application_full_path.c_str());
 				dr_messagebox("failed: static info");
 				dr_abort();
 			}
@@ -285,7 +286,7 @@ inline std::vector<std::wstring> get_drive_strings()
 {
 	// [GetLogicalDriveStrings] The return value is the length, in characters, of the strings copied to the buffer, not including the terminating null character
 	const auto size = GetLogicalDriveStrings(0, nullptr);
-	const std::shared_ptr<TCHAR> disk_drives{ new TCHAR[size + 1]{} };
+	const std::shared_ptr<TCHAR> disk_drives{new TCHAR[size + 1]{}};
 	GetLogicalDriveStrings(size, disk_drives.get());
 
 	std::vector<std::wstring> drives_vector{};
@@ -293,7 +294,7 @@ inline std::vector<std::wstring> get_drive_strings()
 	while (*drive_ptr != 0U)
 	{
 		const auto current_string_size = wcslen(drive_ptr);
-		const std::wstring current_drive{ drive_ptr, current_string_size };
+		const std::wstring current_drive{drive_ptr, current_string_size};
 		drives_vector.emplace_back(current_drive);
 		drive_ptr += (current_string_size + 1);
 	}
@@ -313,7 +314,7 @@ void add_current_process()
 	{
 		DR_ASSERT(FALSE && "failed to connect mailslot [main_launcher_slot]");
 	}
-	const auto add_command{ std::wstring{L"add"} +L" " + std::to_wstring(dr_get_process_id()) };
+	const auto add_command{std::wstring{L"add"} + L" " + std::to_wstring(dr_get_process_id())};
 	const auto result = main_launcher_slot.write_slot(add_command);
 	if (!result)
 	{
@@ -329,7 +330,7 @@ void remove_current_process()
 	{
 		DR_ASSERT(FALSE && "failed to connect mailslot [main_launcher_slot]");
 	}
-	const auto add_command{ std::wstring{L"remove"} +L" " + std::to_wstring(dr_get_process_id()) };
+	const auto add_command{std::wstring{L"remove"} + L" " + std::to_wstring(dr_get_process_id())};
 	const auto result = main_launcher_slot.write_slot(add_command);
 	if (!result)
 	{
@@ -773,5 +774,5 @@ void module_load_event(void* drcontext, const module_data_t* mod, bool Loaded)
 	wrap_function(mod->handle, "WSAStartup", dr_semu::networking::handlers::pro_wsa_startup, nullptr);
 	wrap_function(mod->handle, "URLDownloadToFileW", dr_semu::networking::handlers::pro_url_download_to_file, nullptr);
 	wrap_function(mod->handle, "URLDownloadToCacheFileW", dr_semu::networking::handlers::pro_url_download_to_cache_file,
-		nullptr);
+	              nullptr);
 }

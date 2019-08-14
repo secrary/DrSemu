@@ -28,7 +28,7 @@ void generate_security_desciptor_for_files()
 	// generate sd
 	const auto sd_file_path = fs::temp_directory_path().wstring() + L"rndm_file.fs";
 	const auto h_file = CreateFileW(sd_file_path.c_str(), GENERIC_ALL, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, 0,
-		nullptr);
+	                                nullptr);
 	if (h_file == INVALID_HANDLE_VALUE)
 	{
 		const auto last_error = GetLastError();
@@ -52,14 +52,14 @@ void generate_security_desciptor_for_files()
 	}
 
 	const std::shared_ptr<byte> ptr_fs(static_cast<byte*>(
-		calloc(1, virtual_fs::fs_descriptor.len)),
-		free);
+		                                   calloc(1, virtual_fs::fs_descriptor.len)),
+	                                   free);
 
 	virtual_fs::fs_descriptor.ptr_sd = ptr_fs;
 
 	if (0 == GetFileSecurity(sd_file_path.c_str(), requested_information,
-		virtual_fs::fs_descriptor.ptr_sd.get(),
-		virtual_fs::fs_descriptor.len, &virtual_fs::fs_descriptor.len))
+	                         virtual_fs::fs_descriptor.ptr_sd.get(),
+	                         virtual_fs::fs_descriptor.len, &virtual_fs::fs_descriptor.len))
 	{
 		const auto last_err = GetLastError();
 		printf("ProjFS: GetFileSecurity failed, err: %lu\nPath: %ls\n\n", last_err, sd_file_path.c_str());
@@ -73,7 +73,7 @@ std::wstring get_temp_dir()
 	const auto temp_dir_shorten = fs::temp_directory_path(err_code);
 
 	auto chars_size = GetLongPathName(temp_dir_shorten.c_str(), nullptr, 0);
-	const std::shared_ptr<TCHAR> long_path{ new TCHAR[chars_size]{} };
+	const std::shared_ptr<TCHAR> long_path{new TCHAR[chars_size]{}};
 	chars_size = GetLongPathName(temp_dir_shorten.c_str(), long_path.get(), chars_size);
 
 	return std::wstring(long_path.get(), chars_size);
@@ -111,8 +111,8 @@ int __cdecl wmain(const int argc, const WCHAR** argv)
 	if (!launcher_pipe.is_valid())
 	{
 		printf("Failed to connect pipe. last err: 0x%x\npipe_name: %ls\n", GetLastError(),
-			launcher_pipe.pipe_name.c_str()); // log to a file
-		MessageBox(nullptr, L"failed", L"", 0);
+		       launcher_pipe.pipe_name.c_str()); // log to a file
+		MessageBox(nullptr, L"Failed to connect pipe", L"", 0);
 		return -1;
 	}
 
@@ -146,7 +146,7 @@ int __cdecl wmain(const int argc, const WCHAR** argv)
 	if (virtual_reg.is_loaded)
 	{
 		spdlog::info(L"virtual_REG is running at virtualization root [{}]",
-			virtual_reg.virtual_reg_root.c_str());
+		             virtual_reg.virtual_reg_root.c_str());
 	}
 	else
 	{

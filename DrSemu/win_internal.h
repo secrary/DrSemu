@@ -20,7 +20,7 @@ typedef struct _LDR_MODULE
 	SHORT TlsIndex;
 	LIST_ENTRY HashTableEntry;
 	ULONG TimeDateStamp;
-} LDR_MODULE, * PLDR_MODULE;
+} LDR_MODULE, *PLDR_MODULE;
 
 
 typedef

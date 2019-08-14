@@ -21,10 +21,10 @@ namespace launchercli
 	void split_wide_string(__in const std::wstring& str, __out T& container)
 	{
 		using wistringstream = std::basic_istringstream<wchar_t>;
-		std::wistringstream iss{ str };
+		std::wistringstream iss{str};
 		std::copy(std::istream_iterator<std::wstring, wchar_t>(iss),
-			std::istream_iterator<std::wstring, wchar_t>(),
-			std::back_inserter(container));
+		          std::istream_iterator<std::wstring, wchar_t>(),
+		          std::back_inserter(container));
 	}
 
 	std::wstring get_true_random_string(const size_t size)
@@ -33,7 +33,7 @@ namespace launchercli
 		const auto random_numbers = [](int low, int high)
 		{
 			auto random_function = [distribution_ = std::uniform_int_distribution<int>(low, high),
-				random_engine_ = std::mt19937{ std::random_device{}() }]() mutable
+					random_engine_ = std::mt19937{std::random_device{}()}]() mutable
 			{
 				return distribution_(random_engine_);
 			};
@@ -49,7 +49,6 @@ namespace launchercli
 		std::generate_n(std::back_inserter(indexes), size, random_numbers(0, wcslen(alphabet) - 1));
 
 
-
 		std::wstring random_string(size, L'\x0');
 		for (size_t i = 0; i < size; i++)
 		{
@@ -60,7 +59,7 @@ namespace launchercli
 	}
 
 	inline void in_replace_string(std::wstring& target_str, const std::wstring& pattern,
-		const std::wstring& replace_str)
+	                              const std::wstring& replace_str)
 	{
 		auto pos = target_str.find(pattern);
 
@@ -74,8 +73,8 @@ namespace launchercli
 
 	template <class Container>
 	std::ostream& write_container(const Container& c,
-		std::ostream& out,
-		const char delimiter = '\n')
+	                              std::ostream& out,
+	                              const char delimiter = '\n')
 	{
 		auto write_sep = false;
 		for (const auto& e : c)
@@ -118,12 +117,12 @@ namespace launchercli
 		DWORD bytes_written = 0;
 
 		const auto file_handle = CreateFile(file_path.c_str(),
-			GENERIC_WRITE,
-			0,
-			nullptr,
-			CREATE_ALWAYS,
-			FILE_ATTRIBUTE_NORMAL,
-			nullptr);
+		                                    GENERIC_WRITE,
+		                                    0,
+		                                    nullptr,
+		                                    CREATE_ALWAYS,
+		                                    FILE_ATTRIBUTE_NORMAL,
+		                                    nullptr);
 
 		if (file_handle == INVALID_HANDLE_VALUE)
 		{
@@ -171,10 +170,9 @@ namespace launchercli
 	{
 		std::ifstream file_stream(file_path, std::ios::binary);
 		std::string file_content((std::istreambuf_iterator<char>(file_stream)),
-			std::istreambuf_iterator<char>());
+		                         std::istreambuf_iterator<char>());
 		file_stream.close();
 
 		return file_content;
 	}
-
 } // namespace launchercli

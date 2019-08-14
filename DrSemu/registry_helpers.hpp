@@ -22,7 +22,7 @@ namespace dr_semu::registry::helpers
 				if (key_name_information != nullptr)
 				{
 					status = NtQueryKey(ptr_object_attributes->RootDirectory, KeyNameInformation, key_name_information,
-						size, &size);
+					                    size, &size);
 					if (status == STATUS_SUCCESS)
 					{
 						std::wstring key_path{
@@ -53,7 +53,7 @@ namespace dr_semu::registry::helpers
 	}
 
 	inline bool open_handle_from_virtual_reg(const std::wstring& virtual_handle_path, DWORD desired_access,
-		HKEY& virtual_reg_handle)
+	                                         HKEY& virtual_reg_handle)
 	{
 		const auto machine_pos = utils::find_case_insensitive(virtual_handle_path, LR"(\REGISTRY\MACHINE\)");
 		const auto user_pos = utils::find_case_insensitive(virtual_handle_path, LR"(\REGISTRY\USER\)");
@@ -71,23 +71,23 @@ namespace dr_semu::registry::helpers
 			const auto virtual_machine_path = virtual_handle_path.substr(
 				wcslen(LR"(\REGISTRY\MACHINE\)"), virtual_handle_path.length());
 			auto status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, virtual_machine_path.c_str(), 0, desired_access,
-				&virtual_reg_handle);
+			                           &virtual_reg_handle);
 			if (status != ERROR_SUCCESS)
 			{
 				dr_printf("HKEY_LOCAL_MACHINE. subkey: %ls\nstatus: 0x%x last_err: 0x%x\n",
-					virtual_machine_path.c_str(), status, GetLastError());
+				          virtual_machine_path.c_str(), status, GetLastError());
 				return false;
 			}
 		}
 		else if (user_pos == 0)
 		{
 			const auto virtual_user_path = virtual_handle_path.substr(wcslen(LR"(\REGISTRY\USER\)"),
-				virtual_handle_path.length());
+			                                                          virtual_handle_path.length());
 			auto status = RegOpenKeyEx(HKEY_USERS, virtual_user_path.c_str(), 0, desired_access, &virtual_reg_handle);
 			if (status != ERROR_SUCCESS)
 			{
 				dr_printf("HKEY_USERS. subkey: %ls\nstatus: 0x%x last_err: 0x%x\n", virtual_user_path.c_str(), status,
-					GetLastError());
+				          GetLastError());
 				return false;
 			}
 		}
@@ -109,7 +109,7 @@ namespace dr_semu::registry::helpers
 			if (key_name_information != nullptr)
 			{
 				status = NtQueryKey(handle, KeyNameInformation, key_name_information,
-					size, &size);
+				                    size, &size);
 
 				if (status == STATUS_SUCCESS)
 				{
@@ -141,14 +141,14 @@ namespace dr_semu::registry::helpers
 		// \Registry\...
 		// \REGISTRY\MACHINE\Software\xxxx
 
-		const auto virtual_reg_root = std::wstring{ LR"(\REGISTRY\MACHINE\)" } +shared_variables::current_vm_name;
+		const auto virtual_reg_root = std::wstring{LR"(\REGISTRY\MACHINE\)"} + shared_variables::current_vm_name;
 
 		if (!revert && utils::find_case_insensitive(original_reg_path, virtual_reg_root) == 0)
 		{
 			return original_reg_path;
 		}
 
-		auto virtual_reg_path{ original_reg_path };
+		auto virtual_reg_path{original_reg_path};
 
 		const auto virtual_local_machine = virtual_reg_root + LR"(\HKEY_LOCAL_MACHINE)";
 		const auto virtual_users = virtual_reg_root + LR"(\HKEY_USERS)";
@@ -225,7 +225,7 @@ namespace dr_semu::registry::helpers
 			if (key_name_information != nullptr)
 			{
 				result = NtQueryKey(handle, KeyNameInformation, key_name_information,
-					size, &size);
+				                    size, &size);
 				if (result == STATUS_SUCCESS)
 				{
 					// VOLUME_NAME_DOS: \\?\C:\\x..
@@ -257,11 +257,11 @@ namespace dr_semu::registry::helpers
 			{
 				// If the function fails because lpszFilePath is too small to hold the string plus the terminating null character, the return value is the required buffer size, in TCHARs. 
 				// This value includes the size of the terminating null character.
-				std::shared_ptr<wchar_t> dos_current_directory{ new wchar_t[number_of_wchar] };
+				std::shared_ptr<wchar_t> dos_current_directory{new wchar_t[number_of_wchar]};
 				memset(dos_current_directory.get(), 0, number_of_wchar * sizeof(wchar_t));
 
 				number_of_wchar = GetFinalPathNameByHandle(handle, dos_current_directory.get(), number_of_wchar,
-					VOLUME_NAME_DOS);
+				                                           VOLUME_NAME_DOS);
 
 				if (number_of_wchar != 0U)
 				{
@@ -294,7 +294,7 @@ namespace dr_semu::registry::helpers
 			return original_normal;
 		}
 
-		const auto local_machine = std::wstring{ LR"(\REGISTRY\MACHINE\)" } +shared_variables::current_vm_name +
+		const auto local_machine = std::wstring{LR"(\REGISTRY\MACHINE\)"} + shared_variables::current_vm_name +
 			L"\\HKEY_LOCAL_MACHINE";
 		const auto is_local_machine = original_path_upper.find(utils::to_upper_string(local_machine)) != std::
 			wstring::npos;
@@ -317,13 +317,13 @@ namespace dr_semu::registry::helpers
 					original_path_upper.find(LR"(\SOFTWARE\CLASSES\INTERFACE)") == std::wstring::npos &&
 					original_path_upper.find(LR"(\SOFTWARE\CLASSES\MEDIA TYPE)") == std::wstring::npos &&
 					original_path_upper.find(LR"(\SOFTWARE\CLASSES\MEDIAFOUNDATION)") == std::wstring::npos
-					)
+				)
 				{
 					// SHARED
 					redirected_path = original_normal;
 				}
 			}
-			// SOFTWARE\Clients, ** Microsoft**\COM3, ... are SHARED
+				// SOFTWARE\Clients, ** Microsoft**\COM3, ... are SHARED
 			else if (
 				original_path_upper.find(LR"(\SOFTWARE\CLIENTS)") != std::wstring::npos ||
 				original_path_upper.find(LR"(\SOFTWARE\MICROSOFT\COM3)") != std::wstring::npos ||
@@ -416,7 +416,7 @@ namespace dr_semu::registry::helpers
 				||
 				original_path_upper.find(LR"(\SOFTWARE\POLICIES)") != std::wstring::npos ||
 				original_path_upper.find(LR"(\SOFTWARE\REGISTEREDAPPLICATIONS)") != std::wstring::npos
-				)
+			)
 			{
 				redirected_path = original_normal;
 			}
@@ -429,7 +429,7 @@ namespace dr_semu::registry::helpers
 				original_path_upper.find(LR"(\SOFTWARE\CLASSES\INTERFACE)") != std::wstring::npos ||
 				original_path_upper.find(LR"(\SOFTWARE\CLASSES\MEDIA TYPE)") != std::wstring::npos ||
 				original_path_upper.find(LR"(\SOFTWARE\CLASSES\MEDIAFOUNDATION)") != std::wstring::npos
-				)
+			)
 			{
 				const auto replace_location = original_path_upper.find(reg_software);
 				if (replace_location != std::wstring::npos)
@@ -454,32 +454,32 @@ namespace dr_semu::registry::helpers
 	// extract type and registry data from a file
 	_Success_(return)
 
-		inline bool read_data_and_type_from_file(const std::wstring& file_path, const size_t file_size,
-			__out const PBYTE data, __out BYTE& type)
+	inline bool read_data_and_type_from_file(const std::wstring& file_path, const size_t file_size,
+	                                         __out const PBYTE data, __out BYTE& type)
 	{
 		const auto content_size = file_size - sizeof(BYTE);
-		const std::shared_ptr<BYTE> full_content{ new BYTE[file_size] };
+		const std::shared_ptr<BYTE> full_content{new BYTE[file_size]};
 		memset(full_content.get(), 0, file_size);
 
-		const std::string file_path_ascii{ file_path.begin(), file_path.end() };
+		const std::string file_path_ascii{file_path.begin(), file_path.end()};
 		const auto dr_file_handle = dr_open_file(file_path_ascii.c_str(), DR_FILE_READ);
 
 		if (INVALID_FILE == dr_file_handle)
 		{
 			dr_printf("[dr_open_file] failed [KeyValueFullInformation]: %s\n",
-				file_path_ascii.c_str());
+			          file_path_ascii.c_str());
 			return false;
 		}
 
 		const size_t read_size = dr_read_file(dr_file_handle,
-			full_content.get(),
-			file_size);
+		                                      full_content.get(),
+		                                      file_size);
 
 		dr_close_file(dr_file_handle);
 		if (read_size != file_size)
 		{
 			dr_printf("[dr_read_file] (reg) failed: %s\nfile_size %d read_size: %d\n", file_path_ascii.c_str(),
-				file_size, read_size);
+			          file_size, read_size);
 			return false;
 		}
 
@@ -492,9 +492,9 @@ namespace dr_semu::registry::helpers
 
 	_Success_(return)
 
-		inline bool get_value_type_from_reg_file(const std::wstring& file_path, __out BYTE& reg_type)
+	inline bool get_value_type_from_reg_file(const std::wstring& file_path, __out BYTE& reg_type)
 	{
-		const std::string file_path_ascii{ file_path.begin(), file_path.end() };
+		const std::string file_path_ascii{file_path.begin(), file_path.end()};
 		const auto file_handle = dr_open_file(file_path_ascii.data(), DR_FILE_READ);
 
 		if (file_handle == INVALID_FILE)
@@ -553,7 +553,7 @@ namespace dr_semu::registry::helpers
 			if (!status)
 			{
 				dr_printf("[get_virtual_handle] Open virtual_reg handle failed.\npath: %ls\n",
-					virtual_handle_path.c_str());
+				          virtual_handle_path.c_str());
 				dr_messagebox("it should not failed");
 				return false;
 			}
@@ -617,8 +617,8 @@ namespace dr_semu::registry::helpers
 	}
 
 	inline OBJECT_ATTRIBUTES get_virtual_object_attributes_reg(const POBJECT_ATTRIBUTES ptr_object_attributes,
-		const bool cross_access, bool& is_virtual_handle,
-		std::wstring& trace_string, bool& is_deleted)
+	                                                           const bool cross_access, bool& is_virtual_handle,
+	                                                           std::wstring& trace_string, bool& is_deleted)
 	{
 		std::wstring object_name_string{};
 		auto result = utils::unicode_string_to_wstring(ptr_object_attributes->ObjectName, object_name_string);
@@ -628,7 +628,7 @@ namespace dr_semu::registry::helpers
 		if (ptr_object_attributes->RootDirectory != nullptr)
 		{
 			is_virtual_handle = get_virtual_handle(HKEY(ptr_object_attributes->RootDirectory),
-				virtual_reg_handle);
+			                                       virtual_reg_handle);
 		}
 		else
 			// If RootDirectory is NULL, ObjectName must point to a fully qualified object name that includes the full path to the target object.
@@ -641,8 +641,8 @@ namespace dr_semu::registry::helpers
 		{
 			is_deleted = false;
 			auto handle_path = get_path_from_handle_reg(is_virtual_handle
-				? virtual_reg_handle
-				: ptr_object_attributes->RootDirectory, is_deleted);
+				                                            ? virtual_reg_handle
+				                                            : ptr_object_attributes->RootDirectory, is_deleted);
 			if (is_deleted)
 			{
 				trace_string = L"<DELETED_KEY>";
@@ -670,8 +670,8 @@ namespace dr_semu::registry::helpers
 		}
 		OBJECT_ATTRIBUTES new_object_attributes;
 		InitializeObjectAttributes(&new_object_attributes, unicode_string, ptr_object_attributes->Attributes,
-			is_virtual_handle ? virtual_reg_handle : ptr_object_attributes->RootDirectory,
-			ptr_object_attributes->SecurityDescriptor);
+		                           is_virtual_handle ? virtual_reg_handle : ptr_object_attributes->RootDirectory,
+		                           ptr_object_attributes->SecurityDescriptor);
 		new_object_attributes.SecurityQualityOfService = ptr_object_attributes->SecurityQualityOfService;
 
 		// get trace string

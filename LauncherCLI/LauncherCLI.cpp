@@ -21,7 +21,6 @@
 #include "../DrSemu/shared.hpp"
 
 
-
 const std::wstring virtual_fs_reg = L"virtual_FS_REG.exe";
 
 inline std::wstring get_current_location()
@@ -51,7 +50,7 @@ std::wstring get_temp_dir()
 	const auto temp_dir_shorten = fs::temp_directory_path(err_code);
 
 	auto chars_size = GetLongPathName(temp_dir_shorten.c_str(), nullptr, 0);
-	const std::shared_ptr<TCHAR> long_path{ new TCHAR[chars_size]{} };
+	const std::shared_ptr<TCHAR> long_path{new TCHAR[chars_size]{}};
 	chars_size = GetLongPathName(temp_dir_shorten.c_str(), long_path.get(), chars_size);
 
 	return std::wstring(long_path.get(), chars_size);
@@ -166,7 +165,8 @@ int main(int argc, char* argv[])
 		const auto full_path_virtual_fs_reg = binaries_location + virtual_fs_reg;
 		if (!fs::exists(full_path_virtual_fs_reg))
 		{
-			spdlog::critical(L"[VM_{}] Failed to find virtual FS/REG executable. path: {}", vm_index, full_path_virtual_fs_reg);
+			spdlog::critical(L"[VM_{}] Failed to find virtual FS/REG executable. path: {}", vm_index,
+			                 full_path_virtual_fs_reg);
 			return;
 		}
 
@@ -174,7 +174,8 @@ int main(int argc, char* argv[])
 		dr_semu::shared::pipe virtual_fs_pipe(pipe_name);
 		if (!virtual_fs_pipe.is_valid())
 		{
-			spdlog::critical(L"[VM_{}] Failed to init a pipe.\npipe_name: {}\nerr: {}\n", vm_index, pipe_name, GetLastError());
+			spdlog::critical(L"[VM_{}] Failed to init a pipe.\npipe_name: {}\nerr: {}\n", vm_index, pipe_name,
+			                 GetLastError());
 			return;
 		}
 
@@ -198,8 +199,9 @@ int main(int argc, char* argv[])
 
 		if (!virtual_fs_pipe.wait_for_client())
 		{
-			spdlog::error(L"[VM_{}] Failed to make pipe connection {}.\npipe_name: {}\npipe_handle {}\n", vm_index, GetLastError(),
-				virtual_fs_pipe.pipe_name, virtual_fs_pipe.pipe_handle);
+			spdlog::error(L"[VM_{}] Failed to make pipe connection {}.\npipe_name: {}\npipe_handle {}\n", vm_index,
+			              GetLastError(),
+			              virtual_fs_pipe.pipe_name, virtual_fs_pipe.pipe_handle);
 			return;
 		}
 		spdlog::info("[VM_{}] Connected to virtual FS/REG!", vm_index);
@@ -217,7 +219,8 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			spdlog::critical("[VM_{}] Pipe communication with FS/REG failed. pipe handle: {}", vm_index, virtual_fs_pipe.pipe_handle);
+			spdlog::critical("[VM_{}] Pipe communication with FS/REG failed. pipe handle: {}", vm_index,
+			                 virtual_fs_pipe.pipe_handle);
 			return;
 		}
 		/// virtual_reg and virtual_reg is ready
@@ -243,7 +246,8 @@ int main(int argc, char* argv[])
 		dr_semu::shared::slot explorer_mailslot(explorer_mailslot_name);
 		if (!explorer_mailslot.is_valid())
 		{
-			spdlog::critical(L"[VM_{}] Failed to create a slot[ExplorerSlot]. slot name: {}", vm_index, explorer_mailslot_name);
+			spdlog::critical(L"[VM_{}] Failed to create a slot[ExplorerSlot]. slot name: {}", vm_index,
+			                 explorer_mailslot_name);
 			return;
 		}
 		// we send "END" command when all target processes die
@@ -251,8 +255,9 @@ int main(int argc, char* argv[])
 		const auto explorer_kill_event = CreateEvent(nullptr, FALSE, FALSE, explorer_event_name.c_str());
 		if (explorer_kill_event == nullptr)
 		{
-			spdlog::critical(L"[VM_{}] Failed to create a event [ExplorerKiller]. event name: {}; err: {}", vm_index, explorer_event_name,
-				GetLastError());
+			spdlog::critical(L"[VM_{}] Failed to create a event [ExplorerKiller]. event name: {}; err: {}", vm_index,
+			                 explorer_event_name,
+			                 GetLastError());
 			return;
 		}
 		if (!run_app_under_dr_semu(
@@ -351,7 +356,8 @@ int main(int argc, char* argv[])
 					printf("\tPID: %lu\n", pid);
 				}
 			}
-		} while (!pids.empty());
+		}
+		while (!pids.empty());
 
 		// kill the fake explorer process
 		if (SetEvent(explorer_kill_event) == 0)
@@ -405,15 +411,15 @@ int main(int argc, char* argv[])
 			spdlog::error(L"[VM_{}] Failed to find run_detections\npath: {}\n", vm_index, run_detections_exe);
 			return;
 		}
-		STARTUPINFO run_detections_sa{ sizeof(STARTUPINFO) };
+		STARTUPINFO run_detections_sa{sizeof(STARTUPINFO)};
 		PROCESS_INFORMATION run_detections_pi{};
 		auto run_detections_command_line =
 			L"\"" + report_directory + L"\"" +
 			L" \"" + scan_slot_name + L"\"";
 		if (!CreateProcess(run_detections_exe.c_str(), run_detections_command_line.data(), nullptr, nullptr, FALSE,
-			0, /*CREATE_NEW_CONSOLE,*/
-			nullptr, nullptr, &run_detections_sa,
-			&run_detections_pi))
+		                   0, /*CREATE_NEW_CONSOLE,*/
+		                   nullptr, nullptr, &run_detections_sa,
+		                   &run_detections_pi))
 		{
 			spdlog::error("[VM_{}] Failed to create a dumb explorer process\n", vm_index);
 			return;
@@ -435,8 +441,6 @@ int main(int argc, char* argv[])
 
 		/// delete report directory
 		fs::remove_all(report_directory, error_code);
-
-		return;
 	};
 
 	std::vector<std::thread> threads{};
@@ -448,9 +452,9 @@ int main(int argc, char* argv[])
 	}
 
 	std::for_each(threads.begin(), threads.end(), [](auto& thread_object)
-		{
-			thread_object.join();
-		});
+	{
+		thread_object.join();
+	});
 
 	return 0;
 }
@@ -533,7 +537,7 @@ bool run_app_under_dr_semu(
 		L" " + L"-timeout " + std::to_wstring(timeout_seconds);
 
 	const auto dr_run_arguments =
-		std::wstring{ LR"(-client ")" } +
+		std::wstring{LR"(-client ")"} +
 		client_dll_path +
 		LR"(" -- ")" +
 		client_arguments +

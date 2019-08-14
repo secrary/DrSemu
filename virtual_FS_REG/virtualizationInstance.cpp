@@ -9,7 +9,7 @@
 using namespace virtual_fs;
 
 HRESULT virtualization_instance::Start(LPCWSTR rootPath,
-	PRJ_STARTVIRTUALIZING_OPTIONS* options)
+                                       PRJ_STARTVIRTUALIZING_OPTIONS* options)
 {
 	_rootPath = rootPath;
 
@@ -64,10 +64,10 @@ HRESULT virtualization_instance::Start(LPCWSTR rootPath,
 	// parameter.  ProjFS will send this context back to us when calling our callbacks, which will
 	// allow them to fish out this instance of the VirtualizationInstance class and call our methods.
 	hr = PrjStartVirtualizing(_rootPath.c_str(),
-		&_callbacks,
-		this,
-		&_options,
-		&_instanceHandle);
+	                          &_callbacks,
+	                          this,
+	                          &_options,
+	                          &_instanceHandle);
 
 	return hr;
 }
@@ -78,25 +78,25 @@ void virtualization_instance::Stop()
 }
 
 HRESULT virtualization_instance::WritePlaceholderInfo(LPCWSTR relativePath,
-	const PRJ_PLACEHOLDER_INFO* placeholderInfo,
-	DWORD length)
+                                                      const PRJ_PLACEHOLDER_INFO* placeholderInfo,
+                                                      DWORD length)
 {
 	return PrjWritePlaceholderInfo(_instanceHandle,
-		relativePath,
-		placeholderInfo,
-		length);
+	                               relativePath,
+	                               placeholderInfo,
+	                               length);
 }
 
 HRESULT virtualization_instance::WriteFileData(LPCGUID streamId,
-	PVOID buffer,
-	ULONGLONG byteOffset,
-	DWORD length)
+                                               PVOID buffer,
+                                               ULONGLONG byteOffset,
+                                               DWORD length)
 {
 	return PrjWriteFileData(_instanceHandle,
-		streamId,
-		buffer,
-		byteOffset,
-		length);
+	                        streamId,
+	                        buffer,
+	                        byteOffset,
+	                        length);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -178,10 +178,10 @@ HRESULT virtualization_instance::EnsureVirtualizationRoot()
 			// The virtualization root already exists. Check for the stored virtualization instance
 			// ID.
 			const auto id_file_handle = CreateFile2((_rootPath + instance_id_file).c_str(),
-				GENERIC_READ,
-				FILE_SHARE_READ | FILE_SHARE_WRITE,
-				OPEN_EXISTING,
-				nullptr);
+			                                        GENERIC_READ,
+			                                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+			                                        OPEN_EXISTING,
+			                                        nullptr);
 
 			if (id_file_handle == INVALID_HANDLE_VALUE)
 			{
@@ -223,10 +223,10 @@ HRESULT virtualization_instance::EnsureVirtualizationRoot()
 		// Store the ID in the directory as a way for us to detect that this is our directory in
 		// the future.
 		const auto id_file_handle = CreateFile2((_rootPath + instance_id_file).c_str(),
-			GENERIC_WRITE,
-			FILE_SHARE_READ | FILE_SHARE_WRITE,
-			CREATE_NEW,
-			nullptr);
+		                                        GENERIC_WRITE,
+		                                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+		                                        CREATE_NEW,
+		                                        nullptr);
 
 		if (id_file_handle == INVALID_HANDLE_VALUE)
 		{
@@ -246,9 +246,9 @@ HRESULT virtualization_instance::EnsureVirtualizationRoot()
 
 		// Mark the directory as the virtualization root.
 		hr = PrjMarkDirectoryAsPlaceholder(_rootPath.c_str(),
-			nullptr,
-			nullptr,
-			&instanceId);
+		                                   nullptr,
+		                                   nullptr,
+		                                   &instanceId);
 
 		if (FAILED(hr))
 		{
@@ -294,9 +294,9 @@ HRESULT virtualization_instance::GetDirEnumCallback_C(
 {
 	auto instance = reinterpret_cast<virtualization_instance*>(CallbackData->InstanceContext);
 	return instance->GetDirEnum(CallbackData,
-		EnumerationId,
-		SearchExpression,
-		DirEntryBufferHandle);
+	                            EnumerationId,
+	                            SearchExpression,
+	                            DirEntryBufferHandle);
 }
 
 HRESULT virtualization_instance::GetPlaceholderInfoCallback_C(
@@ -315,8 +315,8 @@ HRESULT virtualization_instance::GetFileDataCallback_C(
 {
 	auto instance = reinterpret_cast<virtualization_instance*>(CallbackData->InstanceContext);
 	return instance->GetFileData(CallbackData,
-		ByteOffset,
-		Length);
+	                             ByteOffset,
+	                             Length);
 }
 
 HRESULT virtualization_instance::NotificationCallback_C(
@@ -329,10 +329,10 @@ HRESULT virtualization_instance::NotificationCallback_C(
 {
 	auto instance = reinterpret_cast<virtualization_instance*>(CallbackData->InstanceContext);
 	return instance->Notify(CallbackData,
-		IsDirectory,
-		NotificationType,
-		DestinationFileName,
-		NotificationParameters);
+	                        IsDirectory,
+	                        NotificationType,
+	                        DestinationFileName,
+	                        NotificationParameters);
 }
 
 HRESULT virtualization_instance::QueryFileName_C(

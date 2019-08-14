@@ -33,7 +33,7 @@ inline void change_command_line()
 	memset(command_line.Buffer, 0, command_line.MaximumLength);
 
 	memcpy_s(command_line.Buffer, command_line.MaximumLength, explorer_path.c_str(),
-		explorer_path.length() * sizeof(TCHAR));
+	         explorer_path.length() * sizeof(TCHAR));
 }
 
 int wmain(const int argc, wchar_t** argv)

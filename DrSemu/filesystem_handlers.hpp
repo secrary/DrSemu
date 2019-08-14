@@ -36,7 +36,7 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		const auto return_status = NtFlushBuffersFile(is_virtual_handle ? virtual_handle : file_handle,
-			ptr_out_io_status_block);
+		                                              ptr_out_io_status_block);
 
 		if (is_virtual_handle)
 		{
@@ -125,10 +125,10 @@ namespace dr_semu::filesystem::handlers
 		const auto ZwQueryDirectoryFileEx = reinterpret_cast<ZwQueryDirectoryFileExFunc*>(GetProcAddress(
 			LoadLibrary(L"ntdll.dll"), "ZwQueryDirectoryFileEx"));
 		const auto return_status = ZwQueryDirectoryFileEx(is_virtual_handle ? virtual_handle : file_handle,
-			event_handle, ptr_apc_routine, ptr_apc_context,
-			ptr_io_status_block,
-			ptr_file_information, length, file_information_class,
-			query_flags, file_name);
+		                                                  event_handle, ptr_apc_routine, ptr_apc_context,
+		                                                  ptr_io_status_block,
+		                                                  ptr_file_information, length, file_information_class,
+		                                                  query_flags, file_name);
 
 		if (is_virtual_handle)
 		{
@@ -182,9 +182,9 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		const auto return_status = NtQueryDirectoryFile(is_virtual_handle ? virtual_handle : file_handle, event_handle,
-			ptr_apc_routine, ptr_apc_context, ptr_io_status_block,
-			ptr_file_information, length, file_information_class,
-			return_single_entry, file_name, restart_scan);
+		                                                ptr_apc_routine, ptr_apc_context, ptr_io_status_block,
+		                                                ptr_file_information, length, file_information_class,
+		                                                return_single_entry, file_name, restart_scan);
 
 		//if (file_information_class == FileIdBothDirectoryInformation)
 		//{
@@ -235,12 +235,12 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		const auto return_status = NtQueryFullAttributesFile(&virtual_object_attributes,
-			ptr_file_network_open_information);
+		                                                     ptr_file_network_open_information);
 		const auto is_success = NT_SUCCESS(return_status);
 
 		/// trace call
 		auto full_path = helpers::get_original_full_path(virtual_object_attributes.RootDirectory,
-			virtual_object_attributes.ObjectName);
+		                                                 virtual_object_attributes.ObjectName);
 		full_path = helpers::normalize_path(full_path);
 
 		json query_file_attr;
@@ -295,7 +295,7 @@ namespace dr_semu::filesystem::handlers
 			}
 
 			const auto return_status = NtCreateIoCompletion(ptr_handle, desired_access, &virtual_object_attributes,
-				count);
+			                                                count);
 
 			if (is_virtual_handle && (virtual_object_attributes.RootDirectory != nullptr))
 			{
@@ -492,13 +492,13 @@ namespace dr_semu::filesystem::handlers
 			file_information_class == FileRenameInformationEx ||
 			file_information_class == FileRenameInformationBypassAccessCheck /* Kernel-Only */ ||
 			file_information_class == FileRenameInformationExBypassAccessCheck
-			)
+		)
 		{
 			const auto ptr_file_rename_information = static_cast<PFILE_RENAME_INFORMATION>(ptr_file_information);
 			// FileNameLength : Length, in bytes, of the new name for the file.
 			const std::wstring target_path(ptr_file_rename_information->FileName,
-				ptr_file_rename_information->FileNameLength / sizeof(WCHAR));
-			auto target_virtual_path{ target_path }; // new name
+			                               ptr_file_rename_information->FileNameLength / sizeof(WCHAR));
+			auto target_virtual_path{target_path}; // new name
 
 
 			auto path_size_in_bytes = ptr_file_rename_information->FileNameLength;
@@ -530,12 +530,12 @@ namespace dr_semu::filesystem::handlers
 			const auto ptr_new_rename_information = PFILE_RENAME_INFORMATION(new BYTE[length]);
 			ptr_new_rename_information->ReplaceIfExists = ptr_file_rename_information->ReplaceIfExists;
 			ptr_new_rename_information->RootDirectory = is_virtual_rename_handle_allocated
-				? virtual_file_rename_handle
-				: ptr_file_rename_information->RootDirectory;
+				                                            ? virtual_file_rename_handle
+				                                            : ptr_file_rename_information->RootDirectory;
 			ptr_new_rename_information->FileNameLength = path_size_in_bytes;
 
 			memcpy_s(ptr_new_rename_information->FileName, path_size_in_bytes, target_virtual_path.c_str(),
-				target_virtual_path.length() * sizeof(WCHAR));
+			         target_virtual_path.length() * sizeof(WCHAR));
 
 			auto is_whitelisted = false;
 			const auto old_path_virtual = helpers::get_path_from_handle(handle, is_whitelisted);
@@ -546,8 +546,8 @@ namespace dr_semu::filesystem::handlers
 				helpers::get_original_full_path(ptr_new_rename_information->RootDirectory, target_virtual_path));
 
 			const auto return_status = NtSetInformationFile(is_virtual_handle_allocated ? virtual_handle : handle,
-				ptr_io_status_block, ptr_new_rename_information, length,
-				file_information_class);
+			                                                ptr_io_status_block, ptr_new_rename_information, length,
+			                                                file_information_class);
 			delete[] ptr_new_rename_information;
 			const auto is_success = NT_SUCCESS(return_status);
 
@@ -619,8 +619,8 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		const auto return_status = NtQueryInformationFile(is_virtual_handle ? virtual_handle : handle,
-			ptr_io_status_block, ptr_file_information, length,
-			file_information_class);
+		                                                  ptr_io_status_block, ptr_file_information, length,
+		                                                  file_information_class);
 
 		if (is_virtual_handle)
 		{
@@ -713,11 +713,11 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		const auto return_status = NtCreateSection(section_handle, desired_access,
-			is_virtual_attr_valid
-			? &virtual_object_attributes
-			: ptr_object_attributes, maximum_size, section_page_protection,
-			allocation_attributes,
-			is_virtual_handle ? virtual_handle : file_handle);
+		                                           is_virtual_attr_valid
+			                                           ? &virtual_object_attributes
+			                                           : ptr_object_attributes, maximum_size, section_page_protection,
+		                                           allocation_attributes,
+		                                           is_virtual_handle ? virtual_handle : file_handle);
 		if (is_virtual_handle_attr && (virtual_object_attributes.RootDirectory != nullptr))
 		{
 			NtClose(virtual_object_attributes.RootDirectory);
@@ -773,7 +773,7 @@ namespace dr_semu::filesystem::handlers
 		if (!is_valid)
 		{
 			dr_printf("[NtOpenFile] denied: root_handle: 0x%lx obj_name: %ls\n", ptr_object_attributes->RootDirectory,
-				ptr_object_attributes->ObjectName->Buffer);
+			          ptr_object_attributes->ObjectName->Buffer);
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
 			return SYSCALL_SKIP;
 		}
@@ -782,7 +782,7 @@ namespace dr_semu::filesystem::handlers
 		/// trace syscall
 		std::string full_path_ascii{};
 		const auto full_path_wide = helpers::get_original_full_path(virtual_object_attributes.RootDirectory,
-			virtual_object_attributes.ObjectName);
+		                                                            virtual_object_attributes.ObjectName);
 
 		full_path_ascii = std::string(full_path_wide.begin(), full_path_wide.end());
 
@@ -800,7 +800,7 @@ namespace dr_semu::filesystem::handlers
 #endif
 
 		const auto return_status = NtOpenFile(ptr_out_handle, desired_access, &virtual_object_attributes,
-			ptr_io_status_block, share_access, open_options);
+		                                      ptr_io_status_block, share_access, open_options);
 
 		if (is_virtual_handle && (virtual_object_attributes.RootDirectory != nullptr))
 		{
@@ -868,13 +868,13 @@ namespace dr_semu::filesystem::handlers
 		if (!continiue_execution)
 		{
 			dr_printf("[NtCreateFile] denied: root_handle: 0x%lx obj_name: %ls\n", ptr_object_attributes->RootDirectory,
-				ptr_object_attributes->ObjectName->Buffer);
+			          ptr_object_attributes->ObjectName->Buffer);
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
 			return SYSCALL_SKIP;
 		}
 
 		const auto virtual_path = helpers::get_full_path(virtual_object_attributes.RootDirectory,
-			virtual_object_attributes.ObjectName->Buffer);
+		                                                 virtual_object_attributes.ObjectName->Buffer);
 		if (utils::find_case_insensitive(virtual_path, LR"(C:\)") != std::wstring::npos &&
 			utils::find_case_insensitive(
 				virtual_path, shared_variables::virtual_filesystem_location) == std::wstring::npos)
@@ -898,16 +898,16 @@ namespace dr_semu::filesystem::handlers
 			virtual_path.ends_with(L".mui") &&
 			utils::find_case_insensitive(virtual_path, LR"(syswow64)") != std::wstring::npos &&
 			!fs::exists(virtual_path)
-			)
+		)
 		{
 			// TODO (lasha): change syswow64 to system32 (syswow64_to_system32(wstr))
 			//dr_printf("path: %ls\ncd: 0x%x", virtual_path.c_str(), create_disposition);
 		}
 
 		const auto return_status = NtCreateFile(ptr_handle, desired_access, &virtual_object_attributes,
-			ptr_io_status_block,
-			ptr_allocation_size, file_attributes, share_access, create_disposition,
-			create_options, ea_buffer, ea_length);
+		                                        ptr_io_status_block,
+		                                        ptr_allocation_size, file_attributes, share_access, create_disposition,
+		                                        create_options, ea_buffer, ea_length);
 		if (is_new_unicode)
 		{
 			delete virtual_object_attributes.ObjectName;
@@ -918,7 +918,7 @@ namespace dr_semu::filesystem::handlers
 		/// trace syscall
 		const auto file_full_path = helpers::normalize_path(
 			helpers::get_original_full_path(ptr_object_attributes->RootDirectory,
-				virtual_object_attributes.ObjectName));
+			                                virtual_object_attributes.ObjectName));
 
 		std::string file_full_path_ascii(file_full_path.begin(), file_full_path.end());
 		const auto is_valid_path = !file_full_path_ascii.empty();
@@ -984,8 +984,8 @@ namespace dr_semu::filesystem::handlers
 		const auto current_handle = is_virtual_handle ? virtual_handle : handle;
 
 		const auto return_status = NtWriteFile(current_handle, event_handle,
-			ptr_apc_routine, ptr_apc_context, ptr_io_status_block, ptr_buffer,
-			length, ptr_byte_offset, ptr_key);
+		                                       ptr_apc_routine, ptr_apc_context, ptr_io_status_block, ptr_buffer,
+		                                       length, ptr_byte_offset, ptr_key);
 		const auto is_success = NT_SUCCESS(return_status);
 
 		/// trace call
