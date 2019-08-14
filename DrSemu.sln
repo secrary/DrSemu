@@ -5,22 +5,34 @@ VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DrSemu", "DrSemu\DrSemu.vcxproj", "{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LauncherCLI", "LauncherCLI\LauncherCLI.vcxproj", "{3FBE12A3-0BA4-42D0-B164-F5D9FD362B0E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "virtual_FS_REG", "virtual_FS_REG\virtual_FS_REG.vcxproj", "{D533B4D4-7453-4560-8CA2-7C93DA9584BC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "run_detections", "run_detections\run_detections.vcxproj", "{4A56D36E-ADD2-485C-806E-7B5B5C988554}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fake_explorer", "fake_explorer\fake_explorer.vcxproj", "{C7FFEBC1-1624-4E4C-8259-8B78AC4CA431}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
+		Release|DrSemu_x64 = Release|DrSemu_x64
+		Release|DrSemu_x86 = Release|DrSemu_x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}.Debug|x64.ActiveCfg = Debug|x64
-		{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}.Debug|x64.Build.0 = Debug|x64
-		{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}.Debug|x86.ActiveCfg = Debug|Win32
-		{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}.Debug|x86.Build.0 = Debug|Win32
-		{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}.Release|x64.ActiveCfg = Release|x64
-		{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}.Release|x64.Build.0 = Release|x64
-		{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}.Release|x86.ActiveCfg = Release|Win32
-		{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}.Release|x86.Build.0 = Release|Win32
+		{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}.Release|DrSemu_x64.ActiveCfg = Release|x64
+		{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}.Release|DrSemu_x64.Build.0 = Release|x64
+		{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}.Release|DrSemu_x86.ActiveCfg = Release|Win32
+		{5CEF00F1-5B50-4A46-B9B9-9AA6CA4D088F}.Release|DrSemu_x86.Build.0 = Release|Win32
+		{3FBE12A3-0BA4-42D0-B164-F5D9FD362B0E}.Release|DrSemu_x64.ActiveCfg = Release|x64
+		{3FBE12A3-0BA4-42D0-B164-F5D9FD362B0E}.Release|DrSemu_x64.Build.0 = Release|x64
+		{3FBE12A3-0BA4-42D0-B164-F5D9FD362B0E}.Release|DrSemu_x86.ActiveCfg = Release|x64
+		{3FBE12A3-0BA4-42D0-B164-F5D9FD362B0E}.Release|DrSemu_x86.Build.0 = Release|x64
+		{D533B4D4-7453-4560-8CA2-7C93DA9584BC}.Release|DrSemu_x64.ActiveCfg = Release|x64
+		{D533B4D4-7453-4560-8CA2-7C93DA9584BC}.Release|DrSemu_x86.ActiveCfg = Release|x64
+		{4A56D36E-ADD2-485C-806E-7B5B5C988554}.Release|DrSemu_x64.ActiveCfg = Release|x64
+		{4A56D36E-ADD2-485C-806E-7B5B5C988554}.Release|DrSemu_x86.ActiveCfg = Release|x64
+		{C7FFEBC1-1624-4E4C-8259-8B78AC4CA431}.Release|DrSemu_x64.ActiveCfg = Release|x64
+		{C7FFEBC1-1624-4E4C-8259-8B78AC4CA431}.Release|DrSemu_x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
