@@ -3,6 +3,7 @@
 `Dr.Semu` runs executables in an isolated environment, monitors the behavior of a process, let you to create rules and based on the rules detect if the process is malicious or not.
 
 **[The tool is in early development stage]**
+#### whoami: [@_qaz_qaz](https://twitter.com/_qaz_qaz)
 
 `Dr.Semu` let you to create rules for different malware families and detect new samples based on their behavior.
 
@@ -41,6 +42,7 @@ Example: https://gist.github.com/secrary/e16daf698d466136229dc417d7dbcfa3
 [![DrSemu DEMO](https://user-images.githubusercontent.com/16405698/63061859-36a43f00-bee6-11e9-8b51-f053dfe2ec54.PNG)](https://www.youtube.com/watch?v=Ylfv8EFffoY "DrSemu Detection - DEMO")
 
 ### BUILD
+...
 
 
 ### TODO
