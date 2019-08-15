@@ -77,7 +77,7 @@ constexpr auto ntprotectvirtualmemory = "NtProtectVirtualMemory";
 constexpr auto ntsetcontextthread = "NtSetContextThread";
 
 // system related
-#define NTQUERYSYSTEMINFORMATION	"NtQuerySystemInformation"
+constexpr auto ntquerysysteminformation = "NtQuerySystemInformation";
 constexpr auto ntloaddriver = "NtLoadDriver";
 constexpr auto ntusersystemparametersinfo = "NtUserSystemParametersInfo";
 constexpr auto ntraiseharderror = "NtRaiseHardError";
@@ -457,17 +457,17 @@ inline bool dr_semu_init()
 		NTCREATEPROCESS,
 		NTCREATEPROCESSEX,
 		NTSUSPENDPROCESS,
-		////NTOPENTHREAD,
-		////NTDELAYEXECUTION,
+		//NTOPENTHREAD,
+		//NTDELAYEXECUTION,
 		NTQUERYVIRTUALMEMORY,
 		NTQUERYINFORMATIONPROCESS,
 		ntwritevirtualmemory,
-		ntcontinue,
+		//ntcontinue,
 		ntprotectvirtualmemory,
 		ntsetcontextthread,
 
 		// system related
-		NTQUERYSYSTEMINFORMATION,
+		ntquerysysteminformation,
 		ntloaddriver,
 		ntraiseharderror,
 		ntsetinformationprocess,

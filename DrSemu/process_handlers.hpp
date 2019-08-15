@@ -41,7 +41,7 @@ namespace dr_semu::process::handlers
 		//	);
 
 		const auto process_handle = HANDLE(dr_syscall_get_param(drcontext, 0));
-		const auto ptr_base_address = (PVOID*)(dr_syscall_get_param(drcontext, 1));
+		const auto ptr_base_address = reinterpret_cast<PVOID*>(dr_syscall_get_param(drcontext, 1));
 		const auto ptr_region_size = PSIZE_T(dr_syscall_get_param(drcontext, 2));
 		const auto new_protect = ULONG(dr_syscall_get_param(drcontext, 3));
 		const auto ptr_out_old_protect = PULONG(dr_syscall_get_param(drcontext, 4));
@@ -62,6 +62,16 @@ namespace dr_semu::process::handlers
 
 		const auto return_status = NtProtectVirtualMemory(process_handle, ptr_base_address, ptr_region_size,
 		                                                  new_protect, ptr_out_old_protect);
+		const auto is_success = NT_SUCCESS(return_status);
+
+		json virtual_protect;
+		virtual_protect["NtProtectVirtualMemory"]["before"] = {
+			{"process_handle", reinterpret_cast<ULONG>(process_handle)},
+			{"base_address", reinterpret_cast<DWORD_PTR>(*ptr_base_address)},
+			{"new_protect", new_protect},
+		};
+		virtual_protect["NtProtectVirtualMemory"]["success"] = is_success;
+		shared_variables::json_concurrent_vector.push_back(virtual_protect);
 
 		dr_syscall_set_result(drcontext, return_status);
 		return SYSCALL_SKIP;

@@ -673,7 +673,7 @@ event_pre_syscall(void* drcontext, int sysnum)
 		}
 
 		// system related
-		if (syscall_name == NTQUERYSYSTEMINFORMATION)
+		if (syscall_name == ntquerysysteminformation)
 		{
 			return dr_semu::system::handlers::NtQuerySystemInformation_handler(drcontext);
 		}

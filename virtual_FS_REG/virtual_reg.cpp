@@ -6,30 +6,25 @@
 
 namespace registry
 {
-	SECURITY_ATTRIBUTES virtual_registry::get_full_access_security_attributes()
+	SECURITY_ATTRIBUTES virtual_registry::get_full_access_security_attributes() const
 	{
-		PSECURITY_DESCRIPTOR pSD = nullptr;
-		DWORD dwRes, dwDisposition;
-		PSID pEveryoneSID = nullptr, pAdminSID = nullptr;
-		PACL pACL = nullptr;
+		PSID p_everyone_sid = nullptr, p_admin_sid = nullptr;
+		PACL p_acl = nullptr;
 		EXPLICIT_ACCESS ea[2];
-		SID_IDENTIFIER_AUTHORITY SIDAuthWorld =
+		SID_IDENTIFIER_AUTHORITY sid_auth_world =
 			SECURITY_WORLD_SID_AUTHORITY;
-		SID_IDENTIFIER_AUTHORITY SIDAuthNT = SECURITY_NT_AUTHORITY;
-		SECURITY_ATTRIBUTES sa;
-		LONG lRes;
-		HKEY hkSub = nullptr;
-
-		SECURITY_ATTRIBUTES security_attributes{};
+		SID_IDENTIFIER_AUTHORITY sid_auth_nt = SECURITY_NT_AUTHORITY;
+		
+		SECURITY_ATTRIBUTES security_attributes;
 		security_attributes.nLength = sizeof(SECURITY_ATTRIBUTES);
 		security_attributes.bInheritHandle = FALSE;
 		security_attributes.lpSecurityDescriptor = nullptr;
 
 		// Create a well-known SID for the Everyone group.
-		if (!AllocateAndInitializeSid(&SIDAuthWorld, 1,
+		if (!AllocateAndInitializeSid(&sid_auth_world, 1,
 		                              SECURITY_WORLD_RID,
 		                              0, 0, 0, 0, 0, 0, 0,
-		                              &pEveryoneSID))
+		                              &p_everyone_sid))
 		{
 			spdlog::error("AllocateAndInitializeSid Error {}", GetLastError());
 			return security_attributes;
@@ -42,14 +37,14 @@ namespace registry
 		ea[0].grfInheritance = NO_INHERITANCE;
 		ea[0].Trustee.TrusteeForm = TRUSTEE_IS_SID;
 		ea[0].Trustee.TrusteeType = TRUSTEE_IS_WELL_KNOWN_GROUP;
-		ea[0].Trustee.ptstrName = static_cast<LPTSTR>(pEveryoneSID);
+		ea[0].Trustee.ptstrName = static_cast<LPTSTR>(p_everyone_sid);
 
 		// Create a SID for the BUILTIN\Administrators group.
-		if (!AllocateAndInitializeSid(&SIDAuthNT, 2,
+		if (!AllocateAndInitializeSid(&sid_auth_nt, 2,
 		                              SECURITY_BUILTIN_DOMAIN_RID,
 		                              DOMAIN_ALIAS_RID_ADMINS,
 		                              0, 0, 0, 0, 0, 0,
-		                              &pAdminSID))
+		                              &p_admin_sid))
 		{
 			spdlog::error("AllocateAndInitializeSid Error {}", GetLastError());
 			return security_attributes;
@@ -63,26 +58,26 @@ namespace registry
 		ea[1].grfInheritance = NO_INHERITANCE;
 		ea[1].Trustee.TrusteeForm = TRUSTEE_IS_SID;
 		ea[1].Trustee.TrusteeType = TRUSTEE_IS_GROUP;
-		ea[1].Trustee.ptstrName = static_cast<LPTSTR>(pAdminSID);
+		ea[1].Trustee.ptstrName = static_cast<LPTSTR>(p_admin_sid);
 
 		// Create a new ACL that contains the new ACEs.
-		dwRes = SetEntriesInAcl(2, ea, nullptr, &pACL);
-		if (ERROR_SUCCESS != dwRes)
+		const auto dw_res = SetEntriesInAcl(2, ea, nullptr, &p_acl);
+		if (ERROR_SUCCESS != dw_res)
 		{
 			spdlog::error("SetEntriesInAcl Error {}", GetLastError());
 			return security_attributes;
 		}
 
 		// Initialize a security descriptor.  
-		pSD = static_cast<PSECURITY_DESCRIPTOR>(LocalAlloc(LPTR,
-		                                                   SECURITY_DESCRIPTOR_MIN_LENGTH));
-		if (nullptr == pSD)
+		const auto p_sd = static_cast<PSECURITY_DESCRIPTOR>(LocalAlloc(LPTR,
+		                                                                         SECURITY_DESCRIPTOR_MIN_LENGTH));
+		if (nullptr == p_sd)
 		{
 			spdlog::error("LocalAlloc Error {}", GetLastError());
 			return security_attributes;
 		}
 
-		if (!InitializeSecurityDescriptor(pSD,
+		if (!InitializeSecurityDescriptor(p_sd,
 		                                  SECURITY_DESCRIPTOR_REVISION))
 		{
 			spdlog::error("InitializeSecurityDescriptor Error {}", GetLastError());
@@ -90,16 +85,16 @@ namespace registry
 		}
 
 		// Add the ACL to the security descriptor. 
-		if (!SetSecurityDescriptorDacl(pSD,
+		if (!SetSecurityDescriptorDacl(p_sd,
 		                               TRUE, // bDaclPresent flag   
-		                               pACL,
+		                               p_acl,
 		                               FALSE)) // not a default DACL 
 		{
 			spdlog::error("SetSecurityDescriptorDacl Error {}", GetLastError());
 			return security_attributes;
 		}
 
-		security_attributes.lpSecurityDescriptor = pSD;
+		security_attributes.lpSecurityDescriptor = p_sd;
 		return security_attributes;
 	}
 
@@ -132,14 +127,14 @@ namespace registry
 				MessageBox(nullptr, L"[RegUnLoadKey] unload failed", nullptr, 0);
 				return;
 			}
-			std::error_code error_code{};
 			fs::remove_all(virtual_reg_current_data_dir, error_code); // noexcept
 		}
 
 		const auto virtual_reg_data = virtual_reg_data_dir_ + L"\\virtual_reg_data.dat";
 		if (!fs::exists(virtual_reg_data))
 		{
-			spdlog::info("Initial virtual Registry creation...");
+			spdlog::warn("Initial virtual Registry creation takes about 10-15 mins to finnish...");
+			spdlog::warn("All subsequent executions will take less than a second!");
 			is_first_time = true;
 			if (!fs::exists(virtual_reg_data_dir_))
 			{
@@ -147,8 +142,7 @@ namespace registry
 			}
 
 			HKEY virtual_key{};
-			HKEY dest_key{};
-			const std::wstring virtual_reg_temp = L"SOFTWARE\\" + this->temp_key_name;
+			const auto virtual_reg_temp = L"SOFTWARE\\" + this->temp_key_name;
 
 			status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, virtual_reg_temp.c_str(), 0, KEY_READ, &virtual_key);
 			if (status == ERROR_SUCCESS)
@@ -159,7 +153,7 @@ namespace registry
 			}
 
 
-			auto async_result_machine = std::async(std::launch::async, [&]()
+			const auto async_result_machine = std::async(std::launch::async, [&]()
 			{
 				// HKEY_LOCAL_MACHINE	
 				const auto local_machine = virtual_reg_temp + L"\\HKEY_LOCAL_MACHINE";
@@ -171,7 +165,7 @@ namespace registry
 				RegCloseKey(local_machine_key);
 			});
 
-			auto async_result_user = std::async(std::launch::async, [&]()
+			const auto async_result_user = std::async(std::launch::async, [&]()
 			{
 				// HKEY_USERS
 				const auto users_key_path = virtual_reg_temp + L"\\HKEY_USERS";
@@ -228,7 +222,7 @@ namespace registry
 		// The problem only occures when new .dat file is created and loaded/unloaded the first time
 		if (is_first_time)
 		{
-			spdlog::warn("Initializng virtual Registry or refresh virtual Registry takes several minutes");
+			// spdlog::warn("Initializing virtual Registry or refresh virtual Registry takes several minutes");
 			status = RegUnLoadKey(HKEY_LOCAL_MACHINE, vm_prefix.c_str());
 			status = RegLoadKeyW(HKEY_LOCAL_MACHINE, vm_prefix.c_str(), current_data.c_str());
 		}
@@ -271,7 +265,7 @@ namespace registry
 		}
 
 		const std::shared_ptr<TCHAR> name_ptr{new TCHAR[max_key_len]};
-		std::shared_ptr<BYTE> data_ptr = nullptr;
+		std::shared_ptr<BYTE> data_ptr;
 		if (name_ptr == nullptr)
 		{
 			return ERROR_NOT_ENOUGH_MEMORY;

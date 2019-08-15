@@ -17,6 +17,8 @@ namespace dr_semu::filesystem::handlers
 		//		_Out_ PIO_STATUS_BLOCK IoStatusBlock
 		//	);
 
+		return SYSCALL_CONTINUE;
+
 		const auto file_handle = HANDLE(dr_syscall_get_param(drcontext, 0)); // FileHandle
 		const auto ptr_out_io_status_block = PIO_STATUS_BLOCK(dr_syscall_get_param(drcontext, 1)); // IoStatusBlock
 
@@ -914,13 +916,12 @@ namespace dr_semu::filesystem::handlers
 		}
 		const auto is_success = NT_SUCCESS(return_status);
 
-#ifndef NO_TRACE_FILESYSTEM
 		/// trace syscall
 		const auto file_full_path = helpers::normalize_path(
 			helpers::get_original_full_path(ptr_object_attributes->RootDirectory,
 			                                virtual_object_attributes.ObjectName));
 
-		std::string file_full_path_ascii(file_full_path.begin(), file_full_path.end());
+		const std::string file_full_path_ascii(file_full_path.begin(), file_full_path.end());
 		const auto is_valid_path = !file_full_path_ascii.empty();
 
 		json create_file_json;
@@ -934,7 +935,7 @@ namespace dr_semu::filesystem::handlers
 		};
 		create_file_json["NtCreateFile"]["success"] = is_success;
 		shared_variables::json_concurrent_vector.push_back(create_file_json);
-#endif
+
 
 		if (is_virtual_handle && (virtual_object_attributes.RootDirectory != nullptr))
 		{
