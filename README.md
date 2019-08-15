@@ -2,7 +2,7 @@
 
 `Dr.Semu` runs executables in an isolated environment, monitors the behavior of a process, and based on `Dr.Semu` rules created by you or community, detects if the process is malicious or not.
 
-**[The tool is in the early development stages]**
+**[The tool is in the early development stage]**
 #### whoami: [@_qaz_qaz](https://twitter.com/_qaz_qaz)
 
 `Dr.Semu` let you to create rules for different malware families and detect new samples based on their behavior.
@@ -10,13 +10,13 @@
 
 ### Isolation through redirection
 
-Everything happens from the user-mode. Windows Projected File System [(ProjFS)](https://docs.microsoft.com/en-us/windows/win32/projfs/projected-file-system) is used to provide a `virtual` file system. For Registry redirection, it copies all Registry hives to a new location and redirects all Registry accesses (after caching Registry hives, all subsequent executions are very fast, ~0.3 sec.)
+Everything happens from the user-mode. Windows Projected File System [(ProjFS)](https://docs.microsoft.com/en-us/windows/win32/projfs/projected-file-system) is used to provide a `virtual` file system. For Registry redirection, it clones all Registry hives to a new location and redirects all Registry accesses (after caching Registry hives, all subsequent executions are very fast, ~0.3 sec.)
 
 See the source code for more about other redirections (process/objects isolation, etc).
 
 ### Monitoring
 
-`Dr.Semu` uses [Dynamorio](https://github.com/DynamoRIO/dynamorio) (Dynamic Instrumentation Tool Platform) to intercept a thread when it's about to cross the user-kernel line. It has the same effect as hooking `SSDT` but from the user-mode and without hooking anything.
+`Dr.Semu` uses [DynamoRIO](https://github.com/DynamoRIO/dynamorio) (Dynamic Instrumentation Tool Platform) to intercept a thread when it's about to cross the user-kernel line. It has the same effect as hooking `SSDT` but from the user-mode and without hooking anything.
 
 At this phase, `Dr.Semu` produces a JSON file, which contains information from the interception.
 
