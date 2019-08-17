@@ -523,8 +523,8 @@ bool run_app_under_dr_semu(
 #ifdef _DEBUG
 	dr_client_location = dr_client_location.parent_path().parent_path();
 #endif
-	
-	
+
+
 	auto client_dll_path = dr_client_location.wstring() + L"\\bin64\\" + L"drsemu_x64.dll";
 	if (arch == launchercli::arch::x86_32)
 	{

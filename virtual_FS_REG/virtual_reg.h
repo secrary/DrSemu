@@ -16,10 +16,8 @@ namespace registry
 		bool is_loaded = false;
 		std::wstring virtual_reg_root{};
 
-		long reg_clone_branch(HKEY root_key_src, HKEY root_key_dest);
-		SECURITY_ATTRIBUTES get_full_access_security_attributes() const;
 		bool save_root_key(std::wstring_view target_key_name) const;
-		
+
 		virtual_registry() = delete;
 		explicit virtual_registry(const std::wstring& /*vm_prefix*/);
 		~virtual_registry();

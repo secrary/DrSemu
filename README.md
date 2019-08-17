@@ -13,7 +13,7 @@
 
 ### Isolation through redirection
 
-Everything happens from the user-mode. Windows Projected File System [(ProjFS)](https://docs.microsoft.com/en-us/windows/win32/projfs/projected-file-system) is used to provide a `virtual` file system. For Registry redirection, it clones all Registry hives to a new location and redirects all Registry accesses (after caching Registry hives, all subsequent executions are very fast, ~0.3 sec.)
+Everything happens from the user-mode. Windows Projected File System [(ProjFS)](https://docs.microsoft.com/en-us/windows/win32/projfs/projected-file-system) is used to provide a `virtual` file system. For Registry redirection, it clones all Registry hives to a new location and redirects all Registry accesses.
 
 See the source code for more about other redirections (process/objects isolation, etc).
 

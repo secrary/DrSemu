@@ -467,36 +467,36 @@ inline bool dr_semu_init()
 		NTQUERYOPENSUBKEYSEX,
 #endif
 
-		//// processes and threads
-		//NTOPENPROCESS,
-		//NTCREATEUSERPROCESS,
-		//NTCREATEPROCESS,
-		//NTCREATEPROCESSEX,
-		//NTSUSPENDPROCESS,
-		////NTOPENTHREAD,
-		////NTDELAYEXECUTION,
-		//NTQUERYVIRTUALMEMORY,
-		//NTQUERYINFORMATIONPROCESS,
-		//ntwritevirtualmemory,
-		////ntcontinue,
-		//ntprotectvirtualmemory,
-		//ntsetcontextthread,
+		// processes and threads
+		NTOPENPROCESS,
+		NTCREATEUSERPROCESS,
+		NTCREATEPROCESS,
+		NTCREATEPROCESSEX,
+		NTSUSPENDPROCESS,
+		//NTOPENTHREAD,
+		//NTDELAYEXECUTION,
+		NTQUERYVIRTUALMEMORY,
+		NTQUERYINFORMATIONPROCESS,
+		ntwritevirtualmemory,
+		//ntcontinue,
+		ntprotectvirtualmemory,
+		ntsetcontextthread,
 
-		//// system related
-		//ntquerysysteminformation,
-		//ntloaddriver,
-		//ntraiseharderror,
-		//ntsetinformationprocess,
+		// system related
+		ntquerysysteminformation,
+		ntloaddriver,
+		ntraiseharderror,
+		ntsetinformationprocess,
 
-		//// objects
-		//ntcreatemutant,
-		//ntopenmutant,
-		//ntcreatemailslotfile,
-		//ntcreatesemaphore,
-		//ntopensemaphore,
-		//ntcreateevent,
-		//ntopenevent,
-		//ntwaitforsingleobject,
+		// objects
+		ntcreatemutant,
+		ntopenmutant,
+		ntcreatemailslotfile,
+		ntcreatesemaphore,
+		ntopensemaphore,
+		ntcreateevent,
+		ntopenevent,
+		ntwaitforsingleobject,
 
 #endif
 	};
