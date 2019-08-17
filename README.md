@@ -73,6 +73,7 @@ Example: https://gist.github.com/secrary/e16daf698d466136229dc417d7dbcfa3
 ### TODO
 
 - Solve isolation related issues
+- Improve synchronization
 - Update the description, add more details
 - Create a GUI for the tool
 

@@ -94,6 +94,15 @@ namespace registry
 
 		this->vm_prefix_ = vm_prefix;
 
+		// unload and remove prev. reg data
+		unload_virtual_key(HKEY_LOCAL_MACHINE);
+		unload_virtual_key(HKEY_USERS);
+		std::error_code err{};
+		auto target_directory = virtual_reg_data_dir_ + L"\\HKLM" + L"_" + vm_prefix_;
+		fs::remove_all(target_directory, err);
+		target_directory = virtual_reg_data_dir_ + L"\\HKEY_USERS" + L"_" + vm_prefix_;
+		fs::remove_all(target_directory, err);
+		
 		auto is_success = save_root_key(L"HKLM");
 		if (!is_success)
 		{
@@ -107,7 +116,7 @@ namespace registry
 
 
 		// HKLM
-		auto target_directory = virtual_reg_data_dir_ + L"\\HKLM" + L"_" + vm_prefix_;
+		target_directory = virtual_reg_data_dir_ + L"\\HKLM" + L"_" + vm_prefix_;
 		for (auto& path : fs::directory_iterator(target_directory))
 		{
 			const auto key_name = path.path().filename().wstring();

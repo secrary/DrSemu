@@ -519,16 +519,16 @@ bool run_app_under_dr_semu(
 
 	const auto is_admin_required = launchercli::is_administrator_required(target_application);
 
-	fs::path dr_client_location = binaries_location;
+	auto dr_client_location = binaries_location;
 #ifdef _DEBUG
-	dr_client_location = dr_client_location.parent_path().parent_path();
+	dr_client_location = fs::path{ dr_client_location }.parent_path().parent_path().wstring() + L"\\";
 #endif
 
 
-	auto client_dll_path = dr_client_location.wstring() + L"\\bin64\\" + L"drsemu_x64.dll";
+	auto client_dll_path = dr_client_location + L"bin64\\" + L"drsemu_x64.dll";
 	if (arch == launchercli::arch::x86_32)
 	{
-		client_dll_path = dr_client_location.wstring() + L"\\bin32\\" + L"drsemu_x86.dll";
+		client_dll_path = dr_client_location + L"bin32\\" + L"drsemu_x86.dll";
 	}
 
 	if (!fs::exists(client_dll_path))
@@ -537,10 +537,10 @@ bool run_app_under_dr_semu(
 		return false;
 	}
 
-	auto dr_run_path = dr_client_location.wstring() + L"\\dynamorio\\bin64\\drrun.exe";
+	auto dr_run_path = dr_client_location + L"dynamorio\\bin64\\drrun.exe";
 	if (arch == launchercli::arch::x86_32)
 	{
-		dr_run_path = dr_client_location.wstring() + L"\\dynamorio\\bin32\\drrun.exe";
+		dr_run_path = dr_client_location + L"dynamorio\\bin32\\drrun.exe";
 	}
 	if (!fs::exists(dr_run_path))
 	{
