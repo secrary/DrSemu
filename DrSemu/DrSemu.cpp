@@ -385,10 +385,10 @@ event_exit()
 	dr_write_file(out_json_file, json_str.data(), json_str.length());
 	dr_close_file(out_json_file);
 
-	//const auto msg_string = std::string{"END! PROC: "} + dr_get_application_name() + " PID: " + std::to_string(
-	//	dr_get_process_id());
-	//dr_messagebox(msg_string.c_str());
-
+	const auto msg_string = std::string{"END! PROC: "} + dr_get_application_name() + " PID: " + std::to_string(
+		dr_get_process_id());
+	dr_messagebox(msg_string.c_str());
+	
 	/*
 	ISSUE: if a parent process calls remove_current_process before a child process(es) finish dr_client_main execution
 	and call add_current_process

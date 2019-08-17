@@ -47,7 +47,7 @@ using namespace concurrency;
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-//#include "../projectedFS/shared_config.h"
+#include "../virtual_FS_REG/shared_config.h"
 
 #include "dr_api.h"
 #include "drmgr.h"

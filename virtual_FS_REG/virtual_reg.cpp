@@ -1,8 +1,10 @@
+#include "delete.hpp"
 #include "virtual_reg.h"
 //#include "regclone.h"
 
 #include <aclapi.h>
 #include <future>
+#include "utils.hpp"
 
 namespace registry
 {
@@ -98,139 +100,155 @@ namespace registry
 		return security_attributes;
 	}
 
+	std::vector<std::wstring> enumerate_key_names(const HKEY root_key)
+	{
+		std::vector<std::wstring> key_names{};
+		DWORD number_of_keys = 0;
+		auto ret_code = RegQueryInfoKey(
+			root_key,
+			nullptr,
+			nullptr,
+			nullptr,
+			&number_of_keys,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr);
+
+		const std::unique_ptr<TCHAR> key_name{ new TCHAR[MAX_PATH] };
+
+		if (number_of_keys)
+		{
+
+			for (DWORD i = 0; i < number_of_keys; i++)
+			{
+				DWORD name_size = MAX_PATH;
+				ret_code = RegEnumKeyEx(root_key, i,
+					key_name.get(),
+					&name_size,
+					nullptr,
+					nullptr,
+					nullptr,
+					nullptr);
+				if (ret_code == ERROR_SUCCESS)
+				{
+					key_names.emplace_back(key_name.get());
+				}
+			}
+		}
+
+		return key_names;
+	}
+	
+	bool virtual_registry::save_root_key(const std::wstring_view target_key_name) const
+	{
+		const auto key_handle = target_key_name == L"HKLM" ? HKEY_LOCAL_MACHINE : HKEY_USERS;
+		const auto target_directory = virtual_reg_data_dir_ + L"\\" + target_key_name.data() + L"_" + vm_prefix_;
+
+		if (!fs::exists(virtual_reg_data_dir_))
+		{
+			fs::create_directories(virtual_reg_data_dir_);;
+		}
+
+		if (!fs::exists(target_directory))
+		{
+			fs::create_directory(target_directory);
+
+			const auto sub_key_names = enumerate_key_names(key_handle);
+
+			for (const auto& key_name : sub_key_names)
+			{
+				if (key_name.starts_with(L"dr_semu"))
+				{
+					continue;
+				}
+				auto reg_command = std::wstring{ L"reg save " } + target_key_name.data() + L"\\" + key_name + L" " + target_directory + L"\\" + key_name;
+
+				const auto is_success = create_process(reg_command);
+				if (!is_success)
+				{
+					return false;
+				}
+
+			}
+
+		}
+
+		return true;
+	}
+
 
 	virtual_registry::virtual_registry(const std::wstring& vm_prefix)
 	{
-		auto is_first_time = false;
-
-		this->security_attributes = this->get_full_access_security_attributes();
-		if (security_attributes.lpSecurityDescriptor == nullptr)
-		{
-			spdlog::error("Failed to generate allow_all_access security descriptor");
-			return;
-		}
-
-		this->vm_prefix = vm_prefix;
-		this->virtual_reg_current_data_dir = virtual_reg_data_dir_ + L"\\virtual_reg_vm_" + vm_prefix;
-
 		std::error_code error_code{};
+		
+		this->vm_prefix_ = vm_prefix;
 
-		HKEY check_key{};
-		auto status = RegOpenKey(HKEY_LOCAL_MACHINE, vm_prefix.c_str(), &check_key);
-		if (status == ERROR_SUCCESS)
+		auto is_success = save_root_key(L"HKLM");
+		if (!is_success)
 		{
-			RegCloseKey(check_key);
-			status = RegUnLoadKey(HKEY_LOCAL_MACHINE, vm_prefix.c_str());
-			if (ERROR_SUCCESS != status)
-			{
-				spdlog::error(L"[RegUnLoadKey] failed. vm: {}. error: {}\n", vm_prefix, status);
-				MessageBox(nullptr, L"[RegUnLoadKey] unload failed", nullptr, 0);
-				return;
-			}
-			fs::remove_all(virtual_reg_current_data_dir, error_code); // noexcept
+			spdlog::critical("Failed to create virtual Registry\n");
+		}
+		is_success = save_root_key(L"HKEY_USERS");
+		if (!is_success)
+		{
+			spdlog::critical("Failed to create virtual Registry\n");
 		}
 
-		const auto virtual_reg_data = virtual_reg_data_dir_ + L"\\virtual_reg_data.dat";
-		if (!fs::exists(virtual_reg_data))
+
+		// HKLM
+		auto target_directory = virtual_reg_data_dir_ + L"\\HKLM" + L"_" + vm_prefix_;
+		for (auto& path : fs::directory_iterator(target_directory))
 		{
-			spdlog::warn("Initial virtual Registry creation takes about 10-15 mins to finnish...");
-			spdlog::warn("All subsequent executions will take less than a second!");
-			is_first_time = true;
-			if (!fs::exists(virtual_reg_data_dir_))
-			{
-				fs::create_directory(virtual_reg_data_dir_, error_code);
-			}
+			const auto key_name = path.path().filename().wstring();
+			const auto reg_command = L"reg load HKLM\\" + vm_prefix_ + L"!" + key_name + L" " + target_directory + L"\\" + key_name;
 
-			HKEY virtual_key{};
-			const auto virtual_reg_temp = L"SOFTWARE\\" + this->temp_key_name;
-
-			status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, virtual_reg_temp.c_str(), 0, KEY_READ, &virtual_key);
-			if (status == ERROR_SUCCESS)
+			is_success = create_process(reg_command);
+			if (!is_success)
 			{
-				RegCloseKey(virtual_key);
-				spdlog::info("[Virtual_FS_REG] Removing temporary virtual registry hive");
-				RegDeleteTree(HKEY_LOCAL_MACHINE, virtual_reg_temp.c_str());
-			}
-
-
-			const auto async_result_machine = std::async(std::launch::async, [&]()
-			{
-				// HKEY_LOCAL_MACHINE	
-				const auto local_machine = virtual_reg_temp + L"\\HKEY_LOCAL_MACHINE";
-				HKEY local_machine_key{};
-				//status = RegCreateKey(HKEY_LOCAL_MACHINE, local_machine.c_str(), &local_machine_key);
-				status = RegCreateKeyEx(HKEY_LOCAL_MACHINE, local_machine.c_str(), 0L, nullptr, REG_OPTION_NON_VOLATILE,
-				                        KEY_WRITE, &this->security_attributes, &local_machine_key, nullptr);
-				reg_clone_branch(HKEY_LOCAL_MACHINE, local_machine_key);
-				RegCloseKey(local_machine_key);
-			});
-
-			const auto async_result_user = std::async(std::launch::async, [&]()
-			{
-				// HKEY_USERS
-				const auto users_key_path = virtual_reg_temp + L"\\HKEY_USERS";
-				HKEY users_key{};
-				//status = RegCreateKey(HKEY_LOCAL_MACHINE, users_key_path.c_str(), &users_key);
-				status = RegCreateKeyEx(HKEY_LOCAL_MACHINE, users_key_path.c_str(), 0L, nullptr,
-				                        REG_OPTION_NON_VOLATILE,
-				                        KEY_WRITE, &this->security_attributes, &users_key, nullptr);
-				reg_clone_branch(HKEY_USERS, users_key);
-				RegCloseKey(users_key);
-			});
-
-			async_result_machine.wait();
-			async_result_user.wait();
-
-			status = RegOpenKey(HKEY_LOCAL_MACHINE, virtual_reg_temp.c_str(), &virtual_key);
-			if (status != ERROR_SUCCESS)
-			{
-				spdlog::error(L"Failed to open a key: {}\\{}", L"HKEY_LOCAL_MACHINE", virtual_reg_temp.c_str());
-				return;
-			}
-			status = RegSaveKeyEx(virtual_key, virtual_reg_data.c_str(), nullptr, REG_LATEST_FORMAT);
-			RegCloseKey(virtual_key);
-			if (status != ERROR_SUCCESS)
-			{
-				spdlog::error("[RegSaveKeyEx] Failed\nstatus_code: {}\nlast error: {}", status, GetLastError());
-				return;
-			}
-
-			status = RegDeleteTree(HKEY_LOCAL_MACHINE, virtual_reg_temp.c_str());
-			if (status == ERROR_SUCCESS)
-			{
-				spdlog::info("[Virtual_FS_REG] Successfully removed temporary Registry hive");
-			}
-			else
-			{
-				spdlog::error("[Virtual_FS_REG] Failed to delete temporary Registry hive. last error: {}",
-				              GetLastError());
+				spdlog::error("Failed to load a virtual Registry\n");
 			}
 		}
 
-		if (fs::exists(virtual_reg_current_data_dir))
+		// HKEY_USERS
+		target_directory = virtual_reg_data_dir_ + L"\\HKEY_USERS" + L"_" + vm_prefix_;
+		for (auto& path : fs::directory_iterator(target_directory))
 		{
-			fs::remove_all(virtual_reg_current_data_dir, error_code);
-		}
-		fs::create_directory(virtual_reg_current_data_dir);
-		const auto current_data = virtual_reg_current_data_dir + L"\\current_reg.dat";
-		fs::copy_file(virtual_reg_data, current_data);
+			const auto key_name = path.path().filename().wstring();
+			const auto reg_command = L"reg load HKEY_USERS\\" + vm_prefix_ + L"!" + key_name + L" " + target_directory + L"\\" + key_name;
 
-		status = RegLoadKeyW(HKEY_LOCAL_MACHINE, vm_prefix.c_str(), current_data.c_str());
-		// On Windows 10 1803, RegUnloadKey hangs whole system several minutes
-		// Current solution:
-		// Unload a hive and load again.
-		// The problem only occures when new .dat file is created and loaded/unloaded the first time
-		if (is_first_time)
-		{
-			// spdlog::warn("Initializing virtual Registry or refresh virtual Registry takes several minutes");
-			status = RegUnLoadKey(HKEY_LOCAL_MACHINE, vm_prefix.c_str());
-			status = RegLoadKeyW(HKEY_LOCAL_MACHINE, vm_prefix.c_str(), current_data.c_str());
+			is_success = create_process(reg_command);
+			if (!is_success)
+			{
+				spdlog::error("Failed to load a virtual Registry\n");
+			}
 		}
-		if (status == ERROR_SUCCESS)
+
+		is_loaded = true;
+		virtual_reg_root = std::wstring{ LR"(HKEY_LOCAL_MACHINE\)" } +vm_prefix_;
+	}
+	
+	bool virtual_registry::unload_virtual_key(const HKEY root_key) const
+	{
+		const auto root_name = root_key == HKEY_LOCAL_MACHINE ? L"HKLM" : L"HKEY_USERS";
+		auto virtual_reg_names = enumerate_key_names(root_key);
+		for (const auto& reg_name : virtual_reg_names)
 		{
-			is_loaded = true;
+			if (reg_name.starts_with(vm_prefix_))
+			{
+				const auto reg_command = std::wstring{ L"reg unload " } + root_name + L"\\" + reg_name;
+				const auto is_success = create_process(reg_command);
+				if (!is_success)
+				{
+					spdlog::error("Failed to unload a virtual registry key");
+				}
+			}
 		}
-		virtual_reg_root = std::wstring{LR"(HKEY_LOCAL_MACHINE\)"} + vm_prefix;
+
+		return true;
 	}
 
 	/// Source: https://www.compuphase.com/regclone.htm
@@ -354,20 +372,22 @@ namespace registry
 		if (is_loaded)
 		{
 			const auto start_time = std::clock();
-			// RegUnLoadKey at the first time takes A LOT time and hangs whole system
-			const auto status = RegUnLoadKey(HKEY_LOCAL_MACHINE, this->vm_prefix.c_str());
-			if (ERROR_SUCCESS != status)
-			{
-				spdlog::error(L"virtual REG failed to unload: HKEY_LOCAL_MACHINE\\{}", this->vm_prefix.c_str());
-				MessageBox(nullptr, L"[virtual_reg] RegUnLoadKey failed", nullptr, 0);
-				return;
-			}
+
+			unload_virtual_key(HKEY_LOCAL_MACHINE);
+			unload_virtual_key(HKEY_USERS);
+			
 			spdlog::info("virtual REG unloaded successfully");
 			const auto end_time = std::clock();
 			const auto elapsed_secs = double(end_time - start_time) / CLOCKS_PER_SEC;
 			spdlog::info("Unload time: {} second(s)", elapsed_secs);
-			std::error_code error_code{};
-			fs::remove_all(virtual_reg_current_data_dir, error_code); // noexcept
+
+			std::error_code err{};
+			auto target_directory = virtual_reg_data_dir_ + L"\\HKLM" + L"_" + vm_prefix_;
+			fs::remove_all(target_directory, err);
+
+			target_directory = virtual_reg_data_dir_ + L"\\HKEY_USERS" + L"_" + vm_prefix_;
+			fs::remove_all(target_directory, err);
+
 		}
 	}
 } // namespace registry

@@ -6,10 +6,9 @@ namespace registry
 {
 	class virtual_registry
 	{
-		std::wstring vm_prefix{};
+		std::wstring vm_prefix_{};
 		const std::wstring virtual_reg_data_dir_ = L"virtual_reg";
-		std::wstring virtual_reg_current_data_dir{};
-		std::wstring temp_key_name = L"dr_semu_virtual_registry";
+		bool unload_virtual_key(HKEY root_key) const;
 
 	public:
 
@@ -19,7 +18,8 @@ namespace registry
 
 		long reg_clone_branch(HKEY root_key_src, HKEY root_key_dest);
 		SECURITY_ATTRIBUTES get_full_access_security_attributes() const;
-
+		bool save_root_key(std::wstring_view target_key_name) const;
+		
 		virtual_registry() = delete;
 		explicit virtual_registry(const std::wstring& /*vm_prefix*/);
 		~virtual_registry();
