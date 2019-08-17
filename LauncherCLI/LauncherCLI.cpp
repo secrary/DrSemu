@@ -62,15 +62,30 @@ int main(int argc, char* argv[])
 	cxxopts::Options options("Dr.Semu LauncherCLI", "CLI Launcher for Dr.Semu");
 	options.add_options()
 		("t,target", "File or Directory path", cxxopts::value<std::string>());
+	options.add_options()
+		("c,cmd_line", "Command Line", cxxopts::value<std::string>());
+
+	auto cmd_result = options.parse(argc, argv);
 	try
 	{
-		auto cmd_result = options.parse(argc, argv);
 		file_path_ascii = cmd_result["target"].as<std::string>();
 	}
 	catch (...)
 	{
 		std::cout << options.help();
 		return -1;
+	}
+
+	std::string target_arguments_ascii{};
+	std::wstring target_arguments{};
+	try
+	{
+		target_arguments_ascii = cmd_result["cmd_line"].as<std::string>();
+		target_arguments = std::wstring(target_arguments_ascii.begin(), target_arguments_ascii.end());
+	}
+	catch (...)
+	{
+		//
 	}
 
 	if (!fs::exists(file_path_ascii))
@@ -103,13 +118,13 @@ int main(int argc, char* argv[])
 	spdlog::info("LauncherCLI for Dr.Semu");
 
 	/// UNCOMMENT FOR TESTING !!!
-	//target_application =
-	//	// x64
-	//	//LR"(C:\windows\system32\cmd.exe)";
-	//	// x86
-	//	LR"(C:\Windows\SysWOW64\cmd.exe)";
+	target_application =
+		// x64
+		//LR"(C:\windows\system32\cmd.exe)";
+		// x86
+		LR"(C:\Windows\SysWOW64\cmd.exe)";
 
-	const std::wstring target_arguments = LR"()";
+	target_arguments = LR"()";
 
 	const auto binaries_location = get_current_location();
 	if (!SetCurrentDirectory(binaries_location.c_str()))
@@ -445,9 +460,9 @@ int main(int argc, char* argv[])
 
 	std::vector<std::thread> threads{};
 	size_t vm_index = 1;
-	for (const auto target_application : target_directory_files)
+	for (const auto current_application : target_directory_files)
 	{
-		threads.emplace_back(vm_thread_function, target_application, vm_index);
+		threads.emplace_back(vm_thread_function, current_application, vm_index);
 		vm_index++;
 	}
 
@@ -504,10 +519,16 @@ bool run_app_under_dr_semu(
 
 	const auto is_admin_required = launchercli::is_administrator_required(target_application);
 
-	auto client_dll_path = binaries_location + L"bin64\\" + L"drsemu_x64.dll";
+	fs::path dr_client_location = binaries_location;
+#ifdef _DEBUG
+	dr_client_location = dr_client_location.parent_path().parent_path();
+#endif
+
+
+	auto client_dll_path = dr_client_location.wstring() + L"\\bin64\\" + L"drsemu_x64.dll";
 	if (arch == launchercli::arch::x86_32)
 	{
-		client_dll_path = binaries_location + L"bin32\\" + L"drsemu_x86.dll";
+		client_dll_path = dr_client_location.wstring() + L"\\bin32\\" + L"drsemu_x86.dll";
 	}
 
 	if (!fs::exists(client_dll_path))
@@ -516,10 +537,10 @@ bool run_app_under_dr_semu(
 		return false;
 	}
 
-	std::wstring dr_run_path = binaries_location + L"dynamorio\\bin64\\drrun.exe";
+	auto dr_run_path = dr_client_location.wstring() + L"\\dynamorio\\bin64\\drrun.exe";
 	if (arch == launchercli::arch::x86_32)
 	{
-		dr_run_path = binaries_location + L"dynamorio\\bin32\\drrun.exe";
+		dr_run_path = dr_client_location.wstring() + L"\\dynamorio\\bin32\\drrun.exe";
 	}
 	if (!fs::exists(dr_run_path))
 	{

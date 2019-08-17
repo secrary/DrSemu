@@ -98,7 +98,8 @@ namespace dr_semu::registry::handlers
 		const auto required_buffer_length = PULONG(dr_syscall_get_param(drcontext, 5)); // RequiredBufferLength
 
 		HKEY virtual_handle{};
-		const auto is_virtual_handle = helpers::get_virtual_handle(HKEY(key_handle), virtual_handle);
+		auto is_root = false;
+		const auto is_virtual_handle = helpers::get_virtual_handle(HKEY(key_handle), virtual_handle, is_root);
 
 		const auto return_result = NtQueryMultipleValueKey(is_virtual_handle ? virtual_handle : key_handle,
 		                                                   value_entries, entry_count, value_buffer, buffer_length,
@@ -280,7 +281,8 @@ namespace dr_semu::registry::handlers
 		const auto key_handle = HANDLE(dr_syscall_get_param(drcontext, 0)); // KeyHandle
 
 		HKEY virtual_key{};
-		const auto is_virtual_key = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_key);
+		auto is_root = false;
+		const auto is_virtual_key = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_key, is_root);
 
 		const auto return_result = NtFlushKey(is_virtual_key ? virtual_key : key_handle);
 
@@ -450,7 +452,8 @@ namespace dr_semu::registry::handlers
 		const auto key_handle = HANDLE(dr_syscall_get_param(drcontext, 0)); // KeyHandle
 
 		HKEY virtual_key{};
-		const auto is_virtual_key = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_key);
+		auto is_root = false;
+		const auto is_virtual_key = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_key, is_root);
 
 		const auto return_status = NtCompressKey(is_virtual_key ? virtual_key : key_handle);
 
@@ -541,7 +544,8 @@ namespace dr_semu::registry::handlers
 		const auto asynchronous = BOOLEAN(dr_syscall_get_param(drcontext, 9)); // Asynchronous
 
 		HKEY virtual_handle{};
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle);
+		auto is_root = false;
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle, is_root);
 
 		const auto return_status = NtNotifyChangeKey(is_virtual_handle ? virtual_handle : key_handle, key_event,
 		                                             ptr_apc_routine, apt_context, ptr_io_status_block,
@@ -580,7 +584,8 @@ namespace dr_semu::registry::handlers
 		const auto data_size = ULONG(dr_syscall_get_param(drcontext, 5)); // DataSize
 
 		HKEY virtual_handle{};
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle);
+		auto is_root = false;
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle, is_root);
 
 		const auto return_status = NtSetValueKey(is_virtual_handle ? virtual_handle : key_handle, value_name,
 		                                         title_index, type, data, data_size);
@@ -622,7 +627,8 @@ namespace dr_semu::registry::handlers
 		const auto ptr_out_result_length = PULONG(dr_syscall_get_param(drcontext, 5)); // ResultLength
 
 		HKEY virtual_handle = nullptr;
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle);
+		auto is_root = false;
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle, is_root);
 
 		const auto result_status = NtEnumerateValueKey(is_virtual_handle ? virtual_handle : key_handle,
 		                                               index, value_information_class, ptr_out_value_information,
@@ -648,7 +654,8 @@ namespace dr_semu::registry::handlers
 		// if a handle is not under virtual_reg => create a new handle under virtual_reg
 		HKEY virtual_reg_handle = nullptr;
 
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_reg_handle);
+		auto is_root = false;
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_reg_handle, is_root);
 
 		if (is_valid_index)
 		{
@@ -670,7 +677,8 @@ namespace dr_semu::registry::handlers
 					auto ptr_name_information = static_cast<PKEY_NAME_INFORMATION>(ptr_out_key_information);
 					const std::wstring name(ptr_name_information->Name,
 					                        ptr_name_information->NameLength / sizeof(WCHAR));
-					const auto reverted_name = helpers::original_to_virtual_reg(name, true);
+
+					const auto reverted_name = helpers::original_to_virtual_reg(name, is_root, true);
 
 					memset(ptr_name_information->Name, 0, ptr_name_information->NameLength);
 					ptr_name_information->NameLength = reverted_name.length() * sizeof(WCHAR);
@@ -682,7 +690,7 @@ namespace dr_semu::registry::handlers
 					auto ptr_basic_information = static_cast<PKEY_BASIC_INFORMATION>(ptr_out_key_information);
 					const std::wstring name(ptr_basic_information->Name,
 					                        ptr_basic_information->NameLength / sizeof(WCHAR));
-					const auto reverted_name = helpers::original_to_virtual_reg(name, true);
+					const auto reverted_name = helpers::original_to_virtual_reg(name, is_root, true);
 
 					memset(ptr_basic_information->Name, 0, ptr_basic_information->NameLength);
 					ptr_basic_information->NameLength = reverted_name.length() * sizeof(WCHAR);
@@ -694,7 +702,7 @@ namespace dr_semu::registry::handlers
 					auto ptr_cached_information = static_cast<PKEY_CACHED_INFORMATION>(ptr_out_key_information);
 					const std::wstring name(ptr_cached_information->Name,
 					                        ptr_cached_information->NameLength / sizeof(WCHAR));
-					const auto reverted_name = helpers::original_to_virtual_reg(name, true);
+					const auto reverted_name = helpers::original_to_virtual_reg(name, is_root, true);
 
 					memset(ptr_cached_information->Name, 0, ptr_cached_information->NameLength);
 					ptr_cached_information->NameLength = reverted_name.length() * sizeof(WCHAR);
@@ -706,7 +714,7 @@ namespace dr_semu::registry::handlers
 					auto ptr_node_information = static_cast<PKEY_NODE_INFORMATION>(ptr_out_key_information);
 					const std::wstring name(ptr_node_information->Name,
 					                        ptr_node_information->NameLength / sizeof(WCHAR));
-					const auto reverted_name = helpers::original_to_virtual_reg(name, true);
+					const auto reverted_name = helpers::original_to_virtual_reg(name, is_root, true);
 
 					memset(ptr_node_information->Name, 0, ptr_node_information->NameLength);
 					ptr_node_information->NameLength = reverted_name.length() * sizeof(WCHAR);
@@ -722,9 +730,9 @@ namespace dr_semu::registry::handlers
 		}
 
 		/// trace call
-		bool is_deleted = false;
+		auto is_deleted = false;
 		const auto key_path = helpers::get_path_from_handle_reg(key_handle, is_deleted);
-		const auto original_path = helpers::original_to_virtual_reg(key_path, true);
+		const auto original_path = helpers::original_to_virtual_reg(key_path, is_root, true);
 		std::string original_ascii(original_path.begin(), original_path.end());
 		json enumerate_key;
 		// NtEnumerateKey and NtQueryKey
@@ -815,14 +823,15 @@ namespace dr_semu::registry::handlers
 		const auto ptr_out_result_length = PULONG(dr_syscall_get_param(drcontext, 5)); // ResultLength
 
 		HKEY virtual_handle = nullptr;
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle);
+		auto is_root = false;
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle, is_root);
 
 		const auto return_status = NtQueryValueKey(is_virtual_handle ? virtual_handle : key_handle, value_name,
 		                                           information_class, ptr_out_key_value_information, length,
 		                                           ptr_out_result_length);
 		const auto is_success = NT_SUCCESS(return_status);
 
-		bool is_unnamed = false;
+		auto is_unnamed = false;
 		const auto handle_name = utils::get_name_from_handle(is_virtual_handle ? virtual_handle : key_handle,
 		                                                     is_unnamed);
 		//if (!is_success) 
@@ -836,7 +845,7 @@ namespace dr_semu::registry::handlers
 			}
 			else if (information_class == KeyValueFullInformation)
 			{
-				auto ptr_full_information = static_cast<PKEY_VALUE_FULL_INFORMATION>(ptr_out_key_value_information);
+				const auto ptr_full_information = static_cast<PKEY_VALUE_FULL_INFORMATION>(ptr_out_key_value_information);
 				auto ptr_data = reinterpret_cast<PCHAR>(ptr_full_information) + ptr_full_information->DataOffset;
 				if (
 					ptr_full_information->Type == REG_SZ ||
@@ -883,7 +892,8 @@ namespace dr_semu::registry::handlers
 
 		HKEY virtual_handle{};
 		// The key already should be from virtual_reg
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle);
+		auto is_root = false;
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle, is_root);
 
 		const auto return_result = NtDeleteKey(is_virtual_handle ? virtual_handle : key_handle);
 
@@ -912,7 +922,8 @@ namespace dr_semu::registry::handlers
 
 		HKEY virtual_handle{};
 		// The key already should be from virtual_reg
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle);
+		auto is_root = false;
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle, is_root);
 
 		const auto return_status =
 			NtDeleteValueKey(is_virtual_handle ? virtual_handle : key_handle, value_name_unicode);
@@ -996,7 +1007,7 @@ namespace dr_semu::registry::handlers
 		return SYSCALL_SKIP;
 	}
 
-	inline bool open_key_internal(void* drcontext, PHANDLE ptr_out_key_handle, ACCESS_MASK desired_access,
+	inline bool open_key_internal(void* drcontext, const PHANDLE ptr_out_key_handle, ACCESS_MASK desired_access,
 	                              const POBJECT_ATTRIBUTES ptr_object_attributes, const ULONG open_options,
 	                              const bool is_ex = false)
 	{
@@ -1024,19 +1035,19 @@ namespace dr_semu::registry::handlers
 		}
 
 		json open_key;
-		std::string key_ascii(trace_string.begin(), trace_string.end());
+		const std::string key_ascii(trace_string.begin(), trace_string.end());
 		// NtOpenKey and NtOpenKeyEx
-		std::string function_name = is_ex ? "NtOpenKeyEx" : "NtOpenKey";
+		const std::string function_name = is_ex ? "NtOpenKeyEx" : "NtOpenKey";
 		open_key[function_name]["before"] = {
 			{"key_path", key_ascii.c_str()},
 		};
 		open_key[function_name]["after"] = {
-			{"key_handle", (DWORD)(*ptr_out_key_handle)},
+			{"key_handle", reinterpret_cast<DWORD>(*ptr_out_key_handle)},
 		};
 		open_key[function_name]["success"] = is_success;
 		shared_variables::json_concurrent_vector.push_back(open_key);
 
-		//dr_printf("open: %ls\n", ptr_object_attributes->ObjectName->Buffer); 
+		//dr_printf("open: %s\nstatus: 0x%lx\n", key_ascii.c_str(), return_status);
 
 		dr_syscall_set_result(drcontext, return_status);
 		return SYSCALL_SKIP;

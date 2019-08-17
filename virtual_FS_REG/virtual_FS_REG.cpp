@@ -81,6 +81,19 @@ std::wstring get_temp_dir()
 
 int __cdecl wmain(const int argc, const WCHAR** argv)
 {
+	//enable_privileges();
+	//const registry::virtual_registry virtual_regx(L"dr_semu_x");
+	//if (virtual_regx.is_loaded)
+	//{
+	//	spdlog::info(L"virtual_REG is running at virtualization root [{}]",
+	//		virtual_regx.virtual_reg_root.c_str());
+	//}
+	//else
+	//{
+	//	spdlog::critical("Failed to start virtual REG");
+	//}
+	//return 0x123;
+	///
 	spdlog::info("Virtual Filesystem & Registry");
 	if (argc < 3)
 	{
@@ -88,14 +101,14 @@ int __cdecl wmain(const int argc, const WCHAR** argv)
 		MessageBox(nullptr, nullptr, nullptr, 0);
 		return -1;
 	}
-	bool reset_reg = false;
+	auto reset_reg = false;
 	if (std::wstring reg_arg(argv[2]); reg_arg == L"reset_cache")
 	{
 		reset_reg = true;
 	}
 
 	const std::wstring vm_index_string = argv[3];
-	const std::wstring current_vm_prefix = L"dr_semu_" + vm_index_string;
+	const auto current_vm_prefix = L"dr_semu_" + vm_index_string;
 	std::error_code err_code{};
 
 	/// pipe to commicate with a launcher

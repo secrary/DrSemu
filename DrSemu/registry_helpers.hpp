@@ -52,9 +52,18 @@ namespace dr_semu::registry::helpers
 		return object_name_string;
 	}
 
-	inline bool open_handle_from_virtual_reg(const std::wstring& virtual_handle_path, DWORD desired_access,
-	                                         HKEY& virtual_reg_handle)
+	inline bool open_handle_from_virtual_reg(const std::wstring& virtual_handle_path, const DWORD desired_access,
+	                                         HKEY& virtual_reg_handle, bool& is_virtual_handle)
 	{
+		if (utils::find_case_insensitive(virtual_handle_path, LR"(\REGISTRY\MACHINE\)") ||
+			utils::find_case_insensitive(virtual_handle_path, LR"(\REGISTRY\USER\)")
+			)
+		{
+			is_virtual_handle = false;
+			//virtual_reg_handle = virtual_handle_path == LR"(\REGISTRY\MACHINE\)" ? HKEY_LOCAL_MACHINE : HKEY_USERS;
+			return true;
+		}
+		
 		const auto machine_pos = utils::find_case_insensitive(virtual_handle_path, LR"(\REGISTRY\MACHINE\)");
 		const auto user_pos = utils::find_case_insensitive(virtual_handle_path, LR"(\REGISTRY\USER\)");
 		if (machine_pos != 0 && user_pos != 0)
@@ -70,7 +79,8 @@ namespace dr_semu::registry::helpers
 		{
 			const auto virtual_machine_path = virtual_handle_path.substr(
 				wcslen(LR"(\REGISTRY\MACHINE\)"), virtual_handle_path.length());
-			auto status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, virtual_machine_path.c_str(), 0, desired_access,
+			dr_printf("u: %ls\n", virtual_machine_path.c_str());
+			const auto status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, virtual_machine_path.c_str(), 0, desired_access,
 			                           &virtual_reg_handle);
 			if (status != ERROR_SUCCESS)
 			{
@@ -83,7 +93,8 @@ namespace dr_semu::registry::helpers
 		{
 			const auto virtual_user_path = virtual_handle_path.substr(wcslen(LR"(\REGISTRY\USER\)"),
 			                                                          virtual_handle_path.length());
-			auto status = RegOpenKeyEx(HKEY_USERS, virtual_user_path.c_str(), 0, desired_access, &virtual_reg_handle);
+	
+			const auto status = RegOpenKeyEx(HKEY_USERS, virtual_user_path.c_str(), 0, desired_access, &virtual_reg_handle);
 			if (status != ERROR_SUCCESS)
 			{
 				dr_printf("HKEY_USERS. subkey: %ls\nstatus: 0x%x last_err: 0x%x\n", virtual_user_path.c_str(), status,
@@ -135,55 +146,117 @@ namespace dr_semu::registry::helpers
 		return {};
 	}
 
-	inline std::wstring original_to_virtual_reg(const std::wstring& original_reg_path, bool revert = false)
+	inline std::wstring original_to_virtual_reg(std::wstring original_reg_path, bool& is_root, const bool revert = false)
 	{
 		// \REGISTRY\USER\S-1-5-21-xxxx-1001
 		// \Registry\...
-		// \REGISTRY\MACHINE\Software\xxxx
+		// \REGISTRY\MACHINE\Software\xxxx => \REGISTRY\MACHINE\dr_semu_x!Software\xxxx
+		//
 
-		const auto virtual_reg_root = std::wstring{LR"(\REGISTRY\MACHINE\)"} + shared_variables::current_vm_name;
+		/*
+		 * ISSUE: in a virtual Registry there is no CurrentConstrolSet key
+		 * SOLUTION: redirect to ControlSetXXX
+		 */
+		// TODO (lasha): redirect to ACTIVE control set, not always 001
+		const std::wstring control_set_string = L"\\CurrentControlSet";
+		const auto control_set_location = utils::find_case_insensitive(original_reg_path, control_set_string);
+		if (control_set_location != std::wstring::npos)
+		{
+			// virtual_reg_path.replace(loc, file_reg.first.length(), file_reg.second);
+			original_reg_path.replace(control_set_location, control_set_string.length(), L"\\ControlSet001");
+		}
 
-		if (!revert && utils::find_case_insensitive(original_reg_path, virtual_reg_root) == 0)
+		is_root = false;
+		if (!utils::starts_with_case_insensitive(original_reg_path, LR"(\REGISTRY\MACHINE)") &&
+			!utils::starts_with_case_insensitive(original_reg_path, LR"(\REGISTRY\USER)"))
 		{
 			return original_reg_path;
 		}
 
+		//dr_printf("o: %ls\n", original_reg_path.c_str());
+		
 		auto virtual_reg_path{original_reg_path};
-
-		const auto virtual_local_machine = virtual_reg_root + LR"(\HKEY_LOCAL_MACHINE)";
-		const auto virtual_users = virtual_reg_root + LR"(\HKEY_USERS)";
-		std::unordered_map<std::wstring, std::wstring> file_reg_map
-		{
-			{LR"(\REGISTRY\USER)", virtual_users},
-			{LR"(\REGISTRY\MACHINE)", virtual_local_machine}
-		};
-
 
 		if (!revert)
 		{
-			for (const auto& file_reg : file_reg_map)
+			const auto hklm_string = LR"(\REGISTRY\MACHINE\)";
+			const auto user_string = LR"(\REGISTRY\USER\)";
+			if (utils::starts_with_case_insensitive(original_reg_path, hklm_string))
 			{
-				const auto loc = utils::find_case_insensitive(virtual_reg_path, file_reg.first);
-				if (loc == 0)
+				const auto end_part = virtual_reg_path.substr(wcslen(hklm_string), virtual_reg_path.length());
+				virtual_reg_path = hklm_string + shared_variables::current_vm_name + L"!" + end_part;
+			}
+			else if (utils::starts_with_case_insensitive(original_reg_path, user_string))
+			{
+				const auto end_part = virtual_reg_path.substr(wcslen(user_string), virtual_reg_path.length());
+				virtual_reg_path = user_string + shared_variables::current_vm_name + L"!" + end_part;
+			}
+			else
+			{
+				if (utils::equals_case_insensitive(original_reg_path, LR"(\REGISTRY\MACHINE)") ||
+					utils::equals_case_insensitive(original_reg_path, LR"(\REGISTRY\USER)")
+					)
 				{
-					virtual_reg_path.replace(loc, file_reg.first.length(), file_reg.second);
-					break;
+					is_root = true;
+					return original_reg_path;
 				}
+				//dr_printf("[Dr.Semu] Unknown Registry path: %ls\n", original_reg_path.c_str());
 			}
 		}
 		else
 		{
-			for (const auto& file_reg : file_reg_map)
+			const auto dr_semu_location = utils::find_case_insensitive(original_reg_path, L"dr_semu_");
+			const auto dr_semu_end = utils::find_case_insensitive(original_reg_path, L"!");
+			if (dr_semu_location == std::wstring::npos ||
+				dr_semu_end == std::wstring::npos
+				)
 			{
-				const auto loc = utils::find_case_insensitive(virtual_reg_path, file_reg.second);
-				if (loc == 0)
-				{
-					virtual_reg_path.replace(loc, file_reg.second.length(), file_reg.first);
-					break;
-				}
+				return original_reg_path;
 			}
+
+			virtual_reg_path.erase(dr_semu_location, dr_semu_end - dr_semu_location + 1);
+
+			//dr_printf("relocated: %ls\n", virtual_reg_path.c_str());
+			//dr_messagebox("dd");
 		}
 
+
+		
+		//const auto virtual_local_machine = virtual_reg_root + LR"(\HKEY_LOCAL_MACHINE)";
+		//const auto virtual_users = virtual_reg_root + LR"(\HKEY_USERS)";
+		//std::unordered_map<std::wstring, std::wstring> file_reg_map
+		//{
+		//	{LR"(\REGISTRY\USER)", virtual_users},
+		//	{LR"(\REGISTRY\MACHINE)", virtual_local_machine}
+		//};
+
+
+		//if (!revert)
+		//{
+		//	for (const auto& file_reg : file_reg_map)
+		//	{
+		//		const auto loc = utils::find_case_insensitive(virtual_reg_path, file_reg.first);
+		//		if (loc == 0)
+		//		{
+		//			virtual_reg_path.replace(loc, file_reg.first.length(), file_reg.second);
+		//			break;
+		//		}
+		//	}
+		//}
+		//else
+		//{
+		//	for (const auto& file_reg : file_reg_map)
+		//	{
+		//		const auto loc = utils::find_case_insensitive(virtual_reg_path, file_reg.second);
+		//		if (loc == 0)
+		//		{
+		//			virtual_reg_path.replace(loc, file_reg.second.length(), file_reg.first);
+		//			break;
+		//		}
+		//	}
+		//}
+
+		//dr_printf("rel: %ls\n", virtual_reg_path.c_str());
 		return virtual_reg_path;
 	}
 
@@ -191,7 +264,7 @@ namespace dr_semu::registry::helpers
 	{
 		if (ptr_object_attributes->RootDirectory != nullptr)
 		{
-			bool is_deleted = false;
+			auto is_deleted = false;
 			const auto path = get_path_from_handle_reg(ptr_object_attributes->RootDirectory, is_deleted);
 			if (is_deleted)
 			{
@@ -294,10 +367,8 @@ namespace dr_semu::registry::helpers
 			return original_normal;
 		}
 
-		const auto local_machine = std::wstring{LR"(\REGISTRY\MACHINE\)"} + shared_variables::current_vm_name +
-			L"\\HKEY_LOCAL_MACHINE";
-		const auto is_local_machine = original_path_upper.find(utils::to_upper_string(local_machine)) != std::
-			wstring::npos;
+		const auto local_machine = std::wstring{ LR"(\REGISTRY\MACHINE\)" };
+		const auto is_local_machine = original_path_upper.find(local_machine) != std::wstring::npos;
 
 		if (is_local_machine) // beginning with HKEY_LOCAL_MACHINE
 		{
@@ -450,10 +521,9 @@ namespace dr_semu::registry::helpers
 
 		return redirected_path;
 	}
-
+	
 	// extract type and registry data from a file
 	_Success_(return)
-
 	inline bool read_data_and_type_from_file(const std::wstring& file_path, const size_t file_size,
 	                                         __out const PBYTE data, __out BYTE& type)
 	{
@@ -525,17 +595,18 @@ namespace dr_semu::registry::helpers
 	}
 
 	// if handle is not from virtual_reg => return virtual handle
-	inline bool get_virtual_handle(const HKEY handle, HKEY& virtual_handle)
+	inline bool get_virtual_handle(const HKEY handle, HKEY& virtual_handle, bool& is_root)
 	{
 		virtual_handle = nullptr;
-
+		is_root = false;
+		
 		if (!utils::is_valid_handle(handle))
 		{
 			dr_printf("[get_virtual_handle] invalid reg handle: 0x%x\n", handle);
 			return false;
 		}
 
-		bool is_deleted = false;
+		auto is_deleted = false;
 		const auto handle_path = get_path_from_handle_reg(handle, is_deleted);
 		if (is_deleted)
 		{
@@ -545,12 +616,22 @@ namespace dr_semu::registry::helpers
 
 		if (!handle_path.empty() && handle_path.find(shared_variables::current_vm_name) == std::wstring::npos)
 		{
-			const auto virtual_handle_path = original_to_virtual_reg(handle_path);
+			const auto virtual_handle_path = original_to_virtual_reg(handle_path, is_root);
+			if (is_root)
+			{
+				return false;
+			}
 
-			const DWORD desired_access = utils::get_handle_granted_access(handle);
+			const auto desired_access = utils::get_handle_granted_access(handle);
 
-			auto status = open_handle_from_virtual_reg(virtual_handle_path, desired_access, virtual_handle);
-			if (!status)
+			auto is_virtual_handle = false;
+			const auto is_valid = open_handle_from_virtual_reg(virtual_handle_path, desired_access, virtual_handle, is_virtual_handle);
+			if (is_valid && !is_virtual_handle)
+			{
+				// it's root handle
+				return false;
+			}
+			if (!is_valid)
 			{
 				dr_printf("[get_virtual_handle] Open virtual_reg handle failed.\npath: %ls\n",
 				          virtual_handle_path.c_str());
@@ -586,14 +667,14 @@ namespace dr_semu::registry::helpers
 	//	return original_path;
 	//}
 
-	inline std::wstring get_key_path_trace(POBJECT_ATTRIBUTES ptr_object_attributes)
+	inline std::wstring get_key_path_trace(const POBJECT_ATTRIBUTES ptr_object_attributes)
 	{
 		std::wstring object_name_string{};
 		auto result = utils::unicode_string_to_wstring(ptr_object_attributes->ObjectName, object_name_string);
 		std::wstring handle_path{};
 		if (ptr_object_attributes->RootDirectory != nullptr)
 		{
-			bool is_deleted = false;
+			auto is_deleted = false;
 			handle_path = get_path_from_handle_reg(ptr_object_attributes->RootDirectory, is_deleted);
 			if (is_deleted)
 			{
@@ -611,7 +692,8 @@ namespace dr_semu::registry::helpers
 		{
 			full_key_path = object_name_string;
 		}
-		const auto original_full_path = original_to_virtual_reg(full_key_path);
+		auto is_root = false;
+		const auto original_full_path = original_to_virtual_reg(full_key_path, is_root);
 
 		return original_full_path;
 	}
@@ -625,17 +707,23 @@ namespace dr_semu::registry::helpers
 
 		HKEY virtual_reg_handle = nullptr;
 		is_virtual_handle = false;
+		auto is_root = false;
 		if (ptr_object_attributes->RootDirectory != nullptr)
 		{
 			is_virtual_handle = get_virtual_handle(HKEY(ptr_object_attributes->RootDirectory),
-			                                       virtual_reg_handle);
-		}
-		else
-			// If RootDirectory is NULL, ObjectName must point to a fully qualified object name that includes the full path to the target object.
-		{
-			object_name_string = original_to_virtual_reg(object_name_string);
+			                                       virtual_reg_handle, is_root);
 		}
 
+		auto is_root_inside = false;
+		object_name_string = original_to_virtual_reg(object_name_string, is_root_inside);
+
+		if (is_root)
+		{
+			object_name_string = shared_variables::current_vm_name + L"!" + object_name_string;
+			//dr_printf("only_name: %ls\nroot: 0x%lx\n", object_name_string.c_str(), ptr_object_attributes->RootDirectory);
+			//dr_messagebox("Xxx");
+		}
+		
 		// redirect
 		if (!cross_access)
 		{
@@ -688,7 +776,8 @@ namespace dr_semu::registry::helpers
 		{
 			full_path = reg_second_path;
 		}
-		trace_string = original_to_virtual_reg(full_path, true);
+
+		trace_string = original_to_virtual_reg(full_path, is_root_inside,  true);
 
 
 		return new_object_attributes;
