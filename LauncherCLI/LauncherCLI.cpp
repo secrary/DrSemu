@@ -118,13 +118,13 @@ int main(int argc, char* argv[])
 	spdlog::info("LauncherCLI for Dr.Semu");
 
 	/// UNCOMMENT FOR TESTING !!!
-	target_application =
-		// x64
-		//LR"(C:\windows\system32\cmd.exe)";
-		// x86
-		LR"(C:\Windows\SysWOW64\cmd.exe)";
-
-	target_arguments = LR"()";
+	//target_application =
+	//	// x64
+	//	//LR"(C:\windows\system32\cmd.exe)";
+	//	// x86
+	//	LR"(C:\Windows\SysWOW64\cmd.exe)";
+	//
+	//target_arguments = LR"()";
 
 	const auto binaries_location = get_current_location();
 	if (!SetCurrentDirectory(binaries_location.c_str()))
