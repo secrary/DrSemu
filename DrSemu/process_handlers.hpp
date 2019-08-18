@@ -564,7 +564,7 @@ namespace dr_semu::process::handlers
 		//		_Inout_ PPS_CREATE_INFO CreateInfo,
 		//		_In_opt_ PPS_ATTRIBUTE_LIST AttributeList
 		//	);
-
+	
 		const auto ptr_out_proc_handle = PHANDLE(dr_syscall_get_param(drcontext, 0)); // ProcessHandle
 		const auto ptr_out_thread_handle = PHANDLE(dr_syscall_get_param(drcontext, 1)); // ThreadHandle
 		const auto proc_desired_access = ACCESS_MASK(dr_syscall_get_param(drcontext, 2));
@@ -578,9 +578,9 @@ namespace dr_semu::process::handlers
 		const auto ptr_opt_attribute_list = PPS_ATTRIBUTE_LIST(dr_syscall_get_param(drcontext, 10));
 
 		if ((opt_proc_object_attributes != nullptr && ((opt_proc_object_attributes->RootDirectory != nullptr) ||
-				(opt_proc_object_attributes->ObjectName != nullptr)))
+			(opt_proc_object_attributes->ObjectName != nullptr)))
 			|| (opt_thread_object_attributes != nullptr && ((opt_thread_object_attributes->RootDirectory != nullptr) ||
-				(opt_thread_object_attributes->ObjectName != nullptr))))
+			(opt_thread_object_attributes->ObjectName != nullptr))))
 		{
 			dr_printf("[NtCreateUserProcess] object_attributes. check!\n");
 			dr_messagebox("NtCreateUserProcess");
@@ -612,7 +612,23 @@ namespace dr_semu::process::handlers
 			if (ptr_opt_process_parameters->CommandLine.Buffer != nullptr)
 			{
 				utils::unicode_string_to_wstring(&ptr_opt_process_parameters->CommandLine, command_line);
+				const auto image_location = utils::find_case_insensitive(command_line, image_path);
+				if (image_location != std::wstring::npos)
+				{
+					command_line.replace(image_location, image_path.length(), relocated_image_path);
+				}
+				if (!command_line.empty())
+				{
+					// yeah I know, we leak here (prev. unicode_string buffer ptr)
+					RtlCreateUnicodeString(&ptr_opt_process_parameters->CommandLine, command_line.data());
+				}
+				
 			}
+		}
+
+		if (!fs::exists(relocated_image_path))
+		{
+			dr_printf("[NtCreateUserProcess] Failed to locate a file: %ls\n", relocated_image_path.c_str());
 		}
 
 		/// trace syscall
@@ -656,7 +672,7 @@ namespace dr_semu::process::handlers
 			shared_variables::json_concurrent_vector.push_back(create_user_process);
 
 			dr_printf(
-				"[NtCreateUserProcess] Cross-plarform arch execution is not currently supported!\nPath: %s\n",
+				"[NtCreateUserProcess] Cross-platform arch execution is not currently supported!\nPath: %s\n",
 				image_path_ascii.c_str());
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
 			return SYSCALL_SKIP;
@@ -664,17 +680,18 @@ namespace dr_semu::process::handlers
 
 		helpers::pre_create_process_tid[current_tid] = pre_info;
 
-		//dr_printf("[NtCreateUserProcess] {%s} path: %s\nrelocated: %ls\n", is_target_x86 ? "x86" : "x64",
-		//          image_path_ascii.c_str(), relocated_image_path.c_str());
+		//dr_printf("[NtCreateUserProcess] {%s} path: %s\nrelocated: %ls\ncmd: %ls\n", is_target_x86 ? "x86" : "x64",
+		//          image_path_ascii.c_str(), ptr_opt_process_parameters->ImagePathName.Buffer, ptr_opt_process_parameters->CommandLine.Buffer);
 
 		shared_variables::are_children = true;
 		// SYSCALL_CONTINUE => inject child process
+		
 		return SYSCALL_CONTINUE;
 	}
 
 	inline void NtCreateUserProcess_post_handler(void* drcontext)
 	{
-		const auto return_value = dr_syscall_get_result(drcontext);
+		const NTSTATUS return_value = dr_syscall_get_result(drcontext);
 		const auto current_tid = dr_get_thread_id(drcontext);
 
 		if (!helpers::pre_create_process_tid.contains(current_tid))
@@ -696,23 +713,32 @@ namespace dr_semu::process::handlers
 
 		if (!NT_SUCCESS(return_value))
 		{
+			if (return_value == STATUS_OBJECT_NAME_NOT_FOUND)
+			{
+				dr_printf("[Dr.Semu:NtCreateProcess:Post] OBJECT_NAME_NOT_FOUND: %s\n", pre_info.image_path_ascii.c_str());
+			}
+			else
+			{
+				dr_printf("[CreateUserProcess] Error: 0x%lx\n", return_value);
+			}
 			create_user_process["NtCreateUserProcess"]["success"] = false;
 			shared_variables::json_concurrent_vector.push_back(create_user_process);
-			return;
 		}
-		create_user_process["NtCreateUserProcess"]["success"] = true;
+		else
+		{
+			const auto proc_id = GetProcessId(*pre_info.ptr_proc_handle);
+			const auto thread_id = GetThreadId(*pre_info.ptr_thread_handle);
 
-		const auto proc_id = GetProcessId(*pre_info.ptr_proc_handle);
-		const auto thread_id = GetThreadId(*pre_info.ptr_thread_handle);
+			// whitelist a child process
+			shared_variables::allowed_target_processes.insert(proc_id);
 
-		// whitelist a child process
-		shared_variables::allowed_target_processes.insert(proc_id);
+			create_user_process["NtCreateUserProcess"]["after"]["proc_id"] = proc_id;
+			create_user_process["NtCreateUserProcess"]["after"]["thread_id"] = thread_id;
 
-		create_user_process["NtCreateUserProcess"]["after"]["proc_id"] = proc_id;
-		create_user_process["NtCreateUserProcess"]["after"]["thread_id"] = thread_id;
-
-		create_user_process["NtCreateUserProcess"]["success"] = true;
-		shared_variables::json_concurrent_vector.push_back(create_user_process);
+			create_user_process["NtCreateUserProcess"]["success"] = true;
+			shared_variables::json_concurrent_vector.push_back(create_user_process);
+		}
+		
 	}
 
 	inline bool NtOpenProcess_handler(void* drcontext)

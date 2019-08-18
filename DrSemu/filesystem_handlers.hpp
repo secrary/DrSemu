@@ -654,7 +654,7 @@ namespace dr_semu::filesystem::handlers
 		const auto section_handle = HANDLE(dr_syscall_get_param(drcontext, 0)); // SectionHandle
 		const auto process_handle = HANDLE(dr_syscall_get_param(drcontext, 1)); // ProcessHandle
 
-		//dr_printf("section: 0x%x proces:: 0x%x\b", section_handle, process_handle);
+		//dr_printf("section: 0x%x process:: 0x%lx\n", section_handle, process_handle);
 		//dr_messagebox("X");
 
 		return SYSCALL_CONTINUE;
@@ -720,6 +720,8 @@ namespace dr_semu::filesystem::handlers
 			                                           : ptr_object_attributes, maximum_size, section_page_protection,
 		                                           allocation_attributes,
 		                                           is_virtual_handle ? virtual_handle : file_handle);
+		const auto is_success = NT_SUCCESS(return_status);
+		
 		if (is_virtual_handle_attr && (virtual_object_attributes.RootDirectory != nullptr))
 		{
 			NtClose(virtual_object_attributes.RootDirectory);
@@ -769,7 +771,7 @@ namespace dr_semu::filesystem::handlers
 		OBJECT_ATTRIBUTES virtual_object_attributes{};
 		auto is_virtual_handle = false;
 		auto is_new_unicode = false;
-		auto is_valid = helpers::get_virtual_object_attributes_fs(
+		const auto is_valid = helpers::get_virtual_object_attributes_fs(
 			ptr_object_attributes, &virtual_object_attributes, is_virtual_handle, is_new_unicode);
 
 		if (!is_valid)
@@ -788,9 +790,6 @@ namespace dr_semu::filesystem::handlers
 
 		full_path_ascii = std::string(full_path_wide.begin(), full_path_wide.end());
 
-		// TODO (lasha): The JSON lib supports std::wstring => saves as list of bytes
-		// * Lua have limited support of unicode
-		// * Malware rarely use unicode strings
 		json open_file_json;
 		open_file_json["NtOpenFile"]["before"] = {
 			{"path", full_path_ascii.c_str()},
