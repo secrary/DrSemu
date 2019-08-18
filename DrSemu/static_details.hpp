@@ -18,6 +18,14 @@ namespace dr_semu::static_info
 		// LIEF uses C++ ex. (problem for DR)
 		// https://github.com/trailofbits/pe-parse/blob/master/dump-pe/main.cpp
 		const auto pe_binary = peparse::ParsePEFromFile(file_path.c_str());
+		if (pe_binary == nullptr)
+		{
+			dr_printf("Failed to get a static information\nfile path: %s\n", file_path.c_str());
+			dr_printf("Error: 0x%lx (%s)\nLocation: %s\n", peparse::GetPEErr(), peparse::GetPEErrString().c_str(), peparse::GetPEErrLoc().c_str());
+			dr_messagebox("Failed to parse a file");
+			return false;
+		}
+		
 		if (pe_binary->peHeader.nt.FileHeader.Machine == 0x14c)
 		{
 			app_arch = arch::x86_32;
@@ -26,7 +34,7 @@ namespace dr_semu::static_info
 		{
 			app_arch = arch::x86_64;
 		}
-		const bool is_x86 = app_arch == arch::x86_32;
+		const auto is_x86 = app_arch == arch::x86_32;
 		const auto pe_optional_header32 = pe_binary->peHeader.nt.OptionalHeader;
 		const auto pe_optional_header64 = pe_binary->peHeader.nt.OptionalHeader64;
 

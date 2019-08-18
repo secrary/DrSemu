@@ -620,7 +620,7 @@ namespace dr_semu::process::handlers
 		const std::string relocated_path_ascii(relocated_image_path.begin(), relocated_image_path.end());
 		const std::string command_line_ascii(command_line.begin(), command_line.end());
 
-		arch target_app_arch = arch::x86_32;
+		auto target_app_arch = arch::x86_32;
 		const auto result = static_info::get_static_info_and_arch(relocated_path_ascii, target_app_arch);
 		const auto is_target_x86 = target_app_arch == arch::x86_32;
 

@@ -99,18 +99,18 @@ soft_kill_event(process_id_t pid, int exit_code)
 static DWORD get_parent_id()
 {
 	ULONG return_length{};
-	PROCESS_BASIC_INFORMATION proocess_basic_info{};
-	auto return_status = NtQueryInformationProcess(
+	PROCESS_BASIC_INFORMATION process_basic_information{};
+	const auto return_status = NtQueryInformationProcess(
 		GetCurrentProcess(),
 		ProcessBasicInformation,
-		&proocess_basic_info,
+		&process_basic_information,
 		sizeof(PROCESS_BASIC_INFORMATION),
 		&return_length);
 	if (!NT_SUCCESS(return_status))
 	{
 		return -1;
 	}
-	return (DWORD)proocess_basic_info.InheritedFromUniqueProcessId;
+	return reinterpret_cast<DWORD>(process_basic_information.InheritedFromUniqueProcessId);
 }
 
 DR_EXPORT void
