@@ -21,11 +21,12 @@ namespace dr_semu::static_info
 		if (pe_binary == nullptr)
 		{
 			dr_printf("Failed to get a static information\nfile path: %s\n", file_path.c_str());
-			dr_printf("Error: 0x%lx (%s)\nLocation: %s\n", peparse::GetPEErr(), peparse::GetPEErrString().c_str(), peparse::GetPEErrLoc().c_str());
+			dr_printf("Error: 0x%lx (%s)\nLocation: %s\n", peparse::GetPEErr(), peparse::GetPEErrString().c_str(),
+			          peparse::GetPEErrLoc().c_str());
 			dr_messagebox("Failed to parse a file");
 			return false;
 		}
-		
+
 		if (pe_binary->peHeader.nt.FileHeader.Machine == 0x14c)
 		{
 			app_arch = arch::x86_32;

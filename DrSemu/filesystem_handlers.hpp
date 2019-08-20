@@ -721,7 +721,7 @@ namespace dr_semu::filesystem::handlers
 		                                           allocation_attributes,
 		                                           is_virtual_handle ? virtual_handle : file_handle);
 		const auto is_success = NT_SUCCESS(return_status);
-		
+
 		if (is_virtual_handle_attr && (virtual_object_attributes.RootDirectory != nullptr))
 		{
 			NtClose(virtual_object_attributes.RootDirectory);

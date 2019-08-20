@@ -117,7 +117,7 @@ DR_EXPORT void
 dr_client_main(client_id_t id, int argc, const char* argv[])
 {
 	dr_set_client_name("Dr.Semu",
-		"https://github.com/secrary/DrSemu");
+	                   "https://github.com/secrary/DrSemu");
 
 	drmgr_init();
 	drwrap_init();
@@ -136,17 +136,17 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 	/// https://dynamorio.org/docs/page_droption.html
 	droption_t<unsigned int> vm_index_option(DROPTION_SCOPE_CLIENT, "vm", 0, "vm index", "VM index number");
 	droption_t<unsigned int> dumb_pid_option(DROPTION_SCOPE_CLIENT, "pid", 0, "dumb explorer pid",
-		"dumb explorer pid [LONG DESC]");
+	                                         "dumb explorer pid [LONG DESC]");
 	droption_t<std::string> binaries_dir_option(DROPTION_SCOPE_CLIENT, "bin", "", "bin_dir",
-		"location of binaries");
+	                                            "location of binaries");
 	droption_t<std::string> temp_directory(DROPTION_SCOPE_CLIENT, "dir", "", "VM location",
-		"VM directory for current instance");
+	                                       "VM directory for current instance");
 	droption_t<std::string> report_name_option(DROPTION_SCOPE_CLIENT, "report", "", "report name",
-		"report directory name");
+	                                           "report directory name");
 	droption_t<std::string> main_mailslot_name_option(DROPTION_SCOPE_CLIENT, "main_slot", "", "main mailslot",
-		"main mailslot name");
+	                                                  "main mailslot name");
 	droption_t<unsigned int> timeout_option(DROPTION_SCOPE_CLIENT, "timeout", 0, "timeout",
-		"target application will die after _TIMEOUT_");
+	                                        "target application will die after _TIMEOUT_");
 
 	dr_semu::networking::config::disable_internet = false;
 
@@ -168,13 +168,13 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 	}
 	const auto mailslot_name_string = main_mailslot_name_option.get_value();
 	dr_semu::shared_variables::main_launcher_slot_name = std::wstring(mailslot_name_string.begin(),
-		mailslot_name_string.end());
+	                                                                  mailslot_name_string.end());
 	const auto binary_directory_string = binaries_dir_option.get_value();
 	dr_semu::shared_variables::binary_directory = std::wstring(binary_directory_string.begin(),
-		binary_directory_string.end());
+	                                                           binary_directory_string.end());
 	const auto report_directory_name_string = report_name_option.get_value();
 	dr_semu::shared_variables::report_directory_name = std::wstring(report_directory_name_string.begin(),
-		report_directory_name_string.end());
+	                                                                report_directory_name_string.end());
 	timeout_ms = timeout_option.get_value();
 
 	//dr_printf("Explorer ID: %d\nmain: %ls\nbin_dir: %ls\nreport: %ls\n",
@@ -187,7 +187,7 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 		dr_semu::shared_variables::main_launcher_slot_name.empty() ||
 		dr_semu::shared_variables::binary_directory.empty() ||
 		dr_semu::shared_variables::report_directory_name.empty()
-		)
+	)
 	{
 		dr_printf("[Dr.Semu] Invalid parameters\n");
 		dr_messagebox("[Dr.Semu] invalid arguments");
@@ -391,7 +391,7 @@ event_exit()
 	const auto msg_string = std::string{"END! PROC: "} + dr_get_application_name() + " PID: " + std::to_string(
 		dr_get_process_id());
 	dr_messagebox(msg_string.c_str());
-	
+
 	/*
 	ISSUE: if a parent process calls remove_current_process before a child process(es) finish dr_client_main execution
 	and call add_current_process

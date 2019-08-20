@@ -53,16 +53,17 @@ namespace registry
 	bool virtual_registry::save_root_key(const std::wstring_view target_key_name) const
 	{
 		const auto key_handle = target_key_name == L"HKLM" ? HKEY_LOCAL_MACHINE : HKEY_USERS;
-		const auto target_directory = virtual_reg_data_dir_ + L"\\" + target_key_name.data() + L"_" + vm_prefix_;
+		const auto target_directory = virtual_reg_data_dir_ + L"\\" + target_key_name.data(); // +L"_" + vm_prefix_;
+		std::error_code err{};
 
 		if (!fs::exists(virtual_reg_data_dir_))
 		{
 			fs::create_directories(virtual_reg_data_dir_);
 		}
 
-		if (!fs::exists(target_directory))
+		if (!fs::exists(target_directory) || fs::is_empty(target_directory, err))
 		{
-			fs::create_directory(target_directory);
+			fs::create_directory(target_directory, err);
 
 			const auto sub_key_names = enumerate_key_names(key_handle);
 
@@ -72,7 +73,7 @@ namespace registry
 				{
 					continue;
 				}
-				auto reg_command = std::wstring{L"reg save "} + target_key_name.data() + L"\\" + key_name + L" " +
+				const auto reg_command = std::wstring{L"reg save "} + target_key_name.data() + L"\\" + key_name + L" " +
 					target_directory + L"\\" + key_name;
 
 				const auto is_success = create_reg_process(reg_command);
@@ -102,7 +103,7 @@ namespace registry
 		fs::remove_all(target_directory, err);
 		target_directory = virtual_reg_data_dir_ + L"\\HKEY_USERS" + L"_" + vm_prefix_;
 		fs::remove_all(target_directory, err);
-		
+
 		auto is_success = save_root_key(L"HKLM");
 		if (!is_success)
 		{
@@ -117,6 +118,7 @@ namespace registry
 
 		// HKLM
 		target_directory = virtual_reg_data_dir_ + L"\\HKLM" + L"_" + vm_prefix_;
+		fs::copy(virtual_reg_data_dir_ + L"\\HKLM", target_directory);
 		for (auto& path : fs::directory_iterator(target_directory))
 		{
 			const auto key_name = path.path().filename().wstring();
@@ -132,6 +134,7 @@ namespace registry
 
 		// HKEY_USERS
 		target_directory = virtual_reg_data_dir_ + L"\\HKEY_USERS" + L"_" + vm_prefix_;
+		fs::copy(virtual_reg_data_dir_ + L"\\HKEY_USERS", target_directory);
 		for (auto& path : fs::directory_iterator(target_directory))
 		{
 			const auto key_name = path.path().filename().wstring();

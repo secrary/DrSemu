@@ -545,7 +545,8 @@ namespace dr_semu::registry::handlers
 
 		HKEY virtual_handle{};
 		auto is_root = false;
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle, is_root);
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle,
+		                                                           is_root);
 
 		const auto return_status = NtNotifyChangeKey(is_virtual_handle ? virtual_handle : key_handle, key_event,
 		                                             ptr_apc_routine, apt_context, ptr_io_status_block,
@@ -585,7 +586,8 @@ namespace dr_semu::registry::handlers
 
 		HKEY virtual_handle{};
 		auto is_root = false;
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle, is_root);
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle,
+		                                                           is_root);
 
 		const auto return_status = NtSetValueKey(is_virtual_handle ? virtual_handle : key_handle, value_name,
 		                                         title_index, type, data, data_size);
@@ -628,7 +630,8 @@ namespace dr_semu::registry::handlers
 
 		HKEY virtual_handle = nullptr;
 		auto is_root = false;
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle, is_root);
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle,
+		                                                           is_root);
 
 		const auto result_status = NtEnumerateValueKey(is_virtual_handle ? virtual_handle : key_handle,
 		                                               index, value_information_class, ptr_out_value_information,
@@ -655,7 +658,8 @@ namespace dr_semu::registry::handlers
 		HKEY virtual_reg_handle = nullptr;
 
 		auto is_root = false;
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_reg_handle, is_root);
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_reg_handle,
+		                                                           is_root);
 
 		if (is_valid_index)
 		{
@@ -824,7 +828,8 @@ namespace dr_semu::registry::handlers
 
 		HKEY virtual_handle = nullptr;
 		auto is_root = false;
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle, is_root);
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle,
+		                                                           is_root);
 
 		const auto return_status = NtQueryValueKey(is_virtual_handle ? virtual_handle : key_handle, value_name,
 		                                           information_class, ptr_out_key_value_information, length,
@@ -845,7 +850,8 @@ namespace dr_semu::registry::handlers
 			}
 			else if (information_class == KeyValueFullInformation)
 			{
-				const auto ptr_full_information = static_cast<PKEY_VALUE_FULL_INFORMATION>(ptr_out_key_value_information);
+				const auto ptr_full_information = static_cast<PKEY_VALUE_FULL_INFORMATION>(ptr_out_key_value_information
+				);
 				auto ptr_data = reinterpret_cast<PCHAR>(ptr_full_information) + ptr_full_information->DataOffset;
 				if (
 					ptr_full_information->Type == REG_SZ ||
@@ -893,7 +899,8 @@ namespace dr_semu::registry::handlers
 		HKEY virtual_handle{};
 		// The key already should be from virtual_reg
 		auto is_root = false;
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle, is_root);
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle,
+		                                                           is_root);
 
 		const auto return_result = NtDeleteKey(is_virtual_handle ? virtual_handle : key_handle);
 
@@ -923,7 +930,8 @@ namespace dr_semu::registry::handlers
 		HKEY virtual_handle{};
 		// The key already should be from virtual_reg
 		auto is_root = false;
-		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle, is_root);
+		const auto is_virtual_handle = helpers::get_virtual_handle(static_cast<HKEY>(key_handle), virtual_handle,
+		                                                           is_root);
 
 		const auto return_status =
 			NtDeleteValueKey(is_virtual_handle ? virtual_handle : key_handle, value_name_unicode);
@@ -999,7 +1007,7 @@ namespace dr_semu::registry::handlers
 		};
 		reg_create_key["NtCreateKey"]["success"] = NT_SUCCESS(return_result);
 		reg_create_key["NtCreateKey"]["after"] = {
-			{"key_handle", (DWORD)* ptr_out_key_handle},
+			{"key_handle", (DWORD)*ptr_out_key_handle},
 		};
 		shared_variables::json_concurrent_vector.push_back(reg_create_key);
 

@@ -564,7 +564,7 @@ namespace dr_semu::process::handlers
 		//		_Inout_ PPS_CREATE_INFO CreateInfo,
 		//		_In_opt_ PPS_ATTRIBUTE_LIST AttributeList
 		//	);
-	
+
 		const auto ptr_out_proc_handle = PHANDLE(dr_syscall_get_param(drcontext, 0)); // ProcessHandle
 		const auto ptr_out_thread_handle = PHANDLE(dr_syscall_get_param(drcontext, 1)); // ThreadHandle
 		const auto proc_desired_access = ACCESS_MASK(dr_syscall_get_param(drcontext, 2));
@@ -578,9 +578,9 @@ namespace dr_semu::process::handlers
 		const auto ptr_opt_attribute_list = PPS_ATTRIBUTE_LIST(dr_syscall_get_param(drcontext, 10));
 
 		if ((opt_proc_object_attributes != nullptr && ((opt_proc_object_attributes->RootDirectory != nullptr) ||
-			(opt_proc_object_attributes->ObjectName != nullptr)))
+				(opt_proc_object_attributes->ObjectName != nullptr)))
 			|| (opt_thread_object_attributes != nullptr && ((opt_thread_object_attributes->RootDirectory != nullptr) ||
-			(opt_thread_object_attributes->ObjectName != nullptr))))
+				(opt_thread_object_attributes->ObjectName != nullptr))))
 		{
 			dr_printf("[NtCreateUserProcess] object_attributes. check!\n");
 			dr_messagebox("NtCreateUserProcess");
@@ -622,7 +622,6 @@ namespace dr_semu::process::handlers
 					// yeah I know, we leak here (prev. unicode_string buffer ptr)
 					RtlCreateUnicodeString(&ptr_opt_process_parameters->CommandLine, command_line.data());
 				}
-				
 			}
 		}
 
@@ -685,7 +684,7 @@ namespace dr_semu::process::handlers
 
 		shared_variables::are_children = true;
 		// SYSCALL_CONTINUE => inject child process
-		
+
 		return SYSCALL_CONTINUE;
 	}
 
@@ -715,7 +714,8 @@ namespace dr_semu::process::handlers
 		{
 			if (return_value == STATUS_OBJECT_NAME_NOT_FOUND)
 			{
-				dr_printf("[Dr.Semu:NtCreateProcess:Post] OBJECT_NAME_NOT_FOUND: %s\n", pre_info.image_path_ascii.c_str());
+				dr_printf("[Dr.Semu:NtCreateProcess:Post] OBJECT_NAME_NOT_FOUND: %s\n",
+				          pre_info.image_path_ascii.c_str());
 			}
 			else
 			{
@@ -738,7 +738,6 @@ namespace dr_semu::process::handlers
 			create_user_process["NtCreateUserProcess"]["success"] = true;
 			shared_variables::json_concurrent_vector.push_back(create_user_process);
 		}
-		
 	}
 
 	inline bool NtOpenProcess_handler(void* drcontext)
