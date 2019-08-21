@@ -12,11 +12,9 @@
 #include "drwrap.h"
 #include "drx.h"
 
-#define WINDOWS
-#define SHOW_RESULTS
+#include <chrono>
 
-#define SHOW_FS
-#define SHOW_SECTIONS
+#define WINDOWS
 
 static size_t timeout_ms{};
 
@@ -282,6 +280,8 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 		dr_semu::utils::hide_fake_explorer();
 	}
 
+	dr_semu::shared_variables::initial_time = std::chrono::high_resolution_clock::now();
+	
 	//dr_printf("dr_main_end\n");
 }
 
@@ -345,8 +345,12 @@ void remove_current_process()
 static void
 event_exit()
 {
-	//dr_printf("[event_exit] PID: %d\n", dr_get_process_id());
+	const auto end_time = std::chrono::high_resolution_clock::now();
+	const auto duration = std::chrono::duration_cast<std::chrono::seconds>(end_time - dr_semu::shared_variables::initial_time).count();
 
+	dr_printf("[event_exit] PID: %d\tDuration: %d seconds\n", dr_get_process_id(), duration);
+
+	
 	drmgr_unregister_module_load_event(module_load_event);
 	if (!drmgr_unregister_pre_syscall_event(event_pre_syscall) || !drmgr_unregister_post_syscall_event(
 		event_post_syscall))

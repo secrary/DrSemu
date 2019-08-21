@@ -127,6 +127,8 @@ namespace dr_semu
 
 		// hide Dr.Semu related process from a process listing
 		inline std::unordered_set<std::wstring> semu_process_names{};
+
+		std::chrono::steady_clock::time_point initial_time;
 	} // namespace shared_variables
 } // namespace dr_semu
 

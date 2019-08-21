@@ -761,6 +761,11 @@ namespace dr_semu::filesystem::handlers
 		const auto share_access = ULONG(dr_syscall_get_param(drcontext, 4)); // ShareAccess
 		const auto open_options = ULONG(dr_syscall_get_param(drcontext, 5)); // OpenOptions
 
+		if (ptr_out_handle == nullptr)
+		{
+			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
+			return SYSCALL_SKIP;
+		}
 		if (ptr_object_attributes == nullptr || ptr_object_attributes->ObjectName == nullptr)
 		{
 			*ptr_out_handle = nullptr;
@@ -790,19 +795,12 @@ namespace dr_semu::filesystem::handlers
 
 		full_path_ascii = std::string(full_path_wide.begin(), full_path_wide.end());
 
-		json open_file_json;
-		open_file_json["NtOpenFile"]["before"] = {
-			{"path", full_path_ascii.c_str()},
-			{"desired_access", desired_access},
-			{"object_name", full_path_ascii.c_str()},
-			{"share_access", share_access}
-		};
-		shared_variables::json_concurrent_vector.push_back(open_file_json);
 #endif
 
 		const auto return_status = NtOpenFile(ptr_out_handle, desired_access, &virtual_object_attributes,
 		                                      ptr_io_status_block, share_access, open_options);
-
+		const auto is_success = NT_SUCCESS(return_status);
+		
 		if (is_virtual_handle && (virtual_object_attributes.RootDirectory != nullptr))
 		{
 			NtClose(virtual_object_attributes.RootDirectory);
@@ -812,6 +810,16 @@ namespace dr_semu::filesystem::handlers
 			delete virtual_object_attributes.ObjectName;
 		}
 
+		json open_file_json;
+		open_file_json["NtOpenFile"]["before"] = {
+			{"path", full_path_ascii.c_str()},
+			{"desired_access", desired_access},
+			{"object_name", full_path_ascii.c_str()},
+			{"share_access", share_access}
+		};
+		open_file_json["NtOpenFile"]["success"] = is_success;
+		shared_variables::json_concurrent_vector.push_back(open_file_json);
+		
 		//dr_printf("name: %ls\nbefore: %ls\nroot: 0x%lx\nret: 0x%x\n", object_name_wide.c_str(), virtual_object_attributes.ObjectName->Buffer, virtual_object_attributes.RootDirectory, return_status);
 
 		dr_syscall_set_result(drcontext, return_status);
