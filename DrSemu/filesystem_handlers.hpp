@@ -795,7 +795,7 @@ namespace dr_semu::filesystem::handlers
 		if (file_path_original.find(LR"(\dr_semu_)") != std::wstring::npos)
 		{
 			*ptr_out_handle = nullptr;
-			xxx;
+			//xxx;
 			// TODO (lasha): redirect data from NtQueryInformationFile
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
 			return SYSCALL_SKIP;
