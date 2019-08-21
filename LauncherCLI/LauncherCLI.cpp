@@ -41,7 +41,7 @@ bool run_app_under_dr_semu(
 	DWORD explorer_pid,
 	const std::wstring& report_directory_name,
 	const std::wstring& main_mailslot_name,
-	DWORD timeout_seconds
+	DWORD time_limit_seconds
 );
 
 std::wstring get_temp_dir()
@@ -64,6 +64,8 @@ int main(int argc, char* argv[])
 		("t,target", "File or Directory path", cxxopts::value<std::string>());
 	options.add_options()
 		("c,cmd_line", "Command Line", cxxopts::value<std::string>());
+	options.add_options()
+		("l,time_limit", "Time limit for a target process (in seconds)", cxxopts::value<DWORD>());
 
 	auto cmd_result = options.parse(argc, argv);
 	try
@@ -88,6 +90,16 @@ int main(int argc, char* argv[])
 		//
 	}
 
+	DWORD time_limit_seconds = 120; // Default time limit
+	try
+	{
+		time_limit_seconds = cmd_result["time_limit"].as<DWORD>();
+	}
+	catch (...)
+	{
+		//
+	}
+	
 	if (!fs::exists(file_path_ascii))
 	{
 		spdlog::critical("No such file/directory: {}\n", file_path_ascii);
@@ -315,7 +327,7 @@ int main(int argc, char* argv[])
 		const auto file_sha2_ascii = digestpp::sha256().absorb(file_content).hexdigest();
 
 		/// launch target application under Dr.Semu
-		const auto timeout_seconds = 30;
+		// const auto time_limit_seconds = 120;
 		if (!run_app_under_dr_semu(
 			target_application,
 			target_arguments,
@@ -325,7 +337,7 @@ int main(int argc, char* argv[])
 			explorer_pid,
 			report_directory_name,
 			main_mailslot_name,
-			timeout_seconds
+			time_limit_seconds
 		))
 		{
 			spdlog::error("[VM_{}] Failed to execute the application under Dr.Semu", vm_index);
@@ -506,7 +518,7 @@ bool run_app_under_dr_semu(
 	const DWORD explorer_pid,
 	const std::wstring& report_directory_name,
 	const std::wstring& main_mailslot_name,
-	const DWORD timeout_seconds
+	const DWORD time_limit_seconds
 )
 {
 	auto arch = launchercli::arch::x86_32;
@@ -555,7 +567,7 @@ bool run_app_under_dr_semu(
 		L" " + L"-dir " + temp_dir +
 		L" " + L"-report " + report_directory_name +
 		L" " + L"-main_slot " + main_mailslot_name +
-		L" " + L"-timeout " + std::to_wstring(timeout_seconds);
+		L" " + L"-limit " + std::to_wstring(time_limit_seconds);
 
 	const auto dr_run_arguments =
 		std::wstring{LR"(-client ")"} +

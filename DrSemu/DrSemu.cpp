@@ -16,8 +16,6 @@
 
 #define WINDOWS
 
-static size_t timeout_ms{};
-
 static void
 event_exit();
 
@@ -33,10 +31,11 @@ event_post_syscall(void* drcontext, int sysnum);
 
 static void module_load_event(void* drcontext, const module_data_t* mod, bool Loaded);
 
-void sleep_and_die(void* /*unused*/)
+void sleep_and_die(void* limit)
 {
-	dr_sleep(120 SECONDS);
-
+	const auto time_limit = reinterpret_cast<DWORD>(limit);
+	dr_sleep(time_limit SECONDS);
+	
 	dr_exit_process(0);
 }
 
@@ -143,8 +142,8 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 	                                           "report directory name");
 	droption_t<std::string> main_mailslot_name_option(DROPTION_SCOPE_CLIENT, "main_slot", "", "main mailslot",
 	                                                  "main mailslot name");
-	droption_t<unsigned int> timeout_option(DROPTION_SCOPE_CLIENT, "timeout", 0, "timeout",
-	                                        "target application will die after _TIMEOUT_");
+	droption_t<unsigned int> time_limit_option(DROPTION_SCOPE_CLIENT, "limit", 0, "limit",
+	                                        "target application will die after _TIME_LIMIT_");
 
 	dr_semu::networking::config::disable_internet = false;
 
@@ -173,8 +172,8 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 	const auto report_directory_name_string = report_name_option.get_value();
 	dr_semu::shared_variables::report_directory_name = std::wstring(report_directory_name_string.begin(),
 	                                                                report_directory_name_string.end());
-	timeout_ms = timeout_option.get_value();
-
+	const auto time_limit = time_limit_option.get_value();
+	
 	//dr_printf("Explorer ID: %d\nmain: %ls\nbin_dir: %ls\nreport: %ls\n",
 	//          dr_semu::shared_variables::dumb_explorer_pid,
 	//          dr_semu::shared_variables::main_launcher_slot_name.c_str(),
@@ -223,10 +222,10 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 		dr_free_module_data(target_module);
 	}
 
-	if (!is_explorer)
+	if (time_limit != 0)
 	{
 		// set timer
-		dr_create_client_thread(sleep_and_die, nullptr);
+		dr_create_client_thread(sleep_and_die, reinterpret_cast<PVOID>(time_limit));
 	}
 
 	// Assume that a host OS is 64-bit
