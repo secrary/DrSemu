@@ -6,7 +6,7 @@ std::wstring get_real_path(const std::wstring& relative_file_path)
 {
 	wchar_t* p_value = nullptr;
 	size_t len;
-	_wdupenv_s(&p_value, &len, L"SystemDrive");
+	_wdupenv_s(&p_value, &len, L"SystemDrive"); // C:
 	if (p_value == nullptr)
 	{
 		return L"";
@@ -135,7 +135,6 @@ HRESULT fs_provider::StartDirEnum(const PRJ_CALLBACK_DATA* CallbackData, const G
 	// Here we map the EnumerationId to a new DirInfo object.
 	active_enum_sessions_[*EnumerationId] = std::make_unique<dir_info>(CallbackData->FilePathName);
 
-
 	return S_OK;
 }
 
@@ -193,6 +192,12 @@ HRESULT fs_provider::GetDirEnum(const PRJ_CALLBACK_DATA* CallbackData, const GUI
 	if (SearchExpression == nullptr)
 	{
 		return E_INVALIDARG;
+	}
+
+	const std::wstring file_path{CallbackData->FilePathName};
+	if (file_path.find(vm_path_start_) != std::wstring::npos)
+	{
+		return E_ACCESSDENIED;
 	}
 
 	// Get the correct enumeration session from our map.
@@ -272,7 +277,13 @@ HRESULT fs_provider::GetDirEnum(const PRJ_CALLBACK_DATA* CallbackData, const GUI
 HRESULT fs_provider::GetPlaceholderInfo(const PRJ_CALLBACK_DATA* CallbackData)
 {
 	const auto file_path = get_real_path(CallbackData->FilePathName);
-	//printf("getholderinfo: %ls\n", file_path.c_str());
+	//printf("getholderinfo: %ls\n", CallbackData->FilePathName);
+
+	const std::wstring target_file_path{CallbackData->FilePathName};
+	if (target_file_path.find(vm_path_start_) != std::wstring::npos)
+	{
+		return E_ACCESSDENIED;
+	}
 
 	DWORD size{};
 	const auto placeholder_ptr = create_placeholder_info(file_path, size);
@@ -328,6 +339,12 @@ HRESULT fs_provider::GetFileData(const PRJ_CALLBACK_DATA* CallbackData, UINT64 B
 		return hr;
 	}
 
+	const std::wstring target_file_path{CallbackData->FilePathName};
+	if (target_file_path.find(vm_path_start_) != std::wstring::npos)
+	{
+		return E_ACCESSDENIED;
+	}
+
 	// We're going to need alignment information that is stored in the instance to service this
 	// callback.
 	PRJ_VIRTUALIZATION_INSTANCE_INFO instance_info;
@@ -349,6 +366,7 @@ HRESULT fs_provider::GetFileData(const PRJ_CALLBACK_DATA* CallbackData, UINT64 B
 	{
 		return E_OUTOFMEMORY;
 	}
+
 
 	// Read the data out of the registry.
 	if (!read_file_content(CallbackData->FilePathName, reinterpret_cast<PBYTE>(write_buffer), Length))
@@ -396,10 +414,13 @@ HRESULT fs_provider::QueryFileName(const PRJ_CALLBACK_DATA* CallbackData)
 
 
 bool fs_provider::populate_dir_info_for_path(const std::wstring& relative_path, dir_info* dir_info,
-                                             const std::wstring& search_expression)
+                                             const std::wstring& search_expression) const
 {
 	const auto file_path = get_real_path(relative_path);
-
+	if (file_path.find(vm_path_start_) != std::wstring::npos)
+	{
+		return false;
+	}
 
 	std::error_code ec{};
 	for (const auto& file : std::filesystem::directory_iterator(file_path, ec))

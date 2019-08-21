@@ -79,7 +79,15 @@ namespace dr_semu::filesystem::helpers
 		return get_full_path(ptr_object_attributes->RootDirectory, name);
 	}
 
-	inline std::wstring get_path_from_handle(HANDLE handle, _Out_ bool& whitelisted, bool get_nt_path = false)
+	inline std::wstring get_full_path(const HANDLE root_handle, const PUNICODE_STRING unicode_name)
+	{
+		std::wstring name{};
+		const auto is_valid = utils::unicode_string_to_wstring(unicode_name, name);
+
+		return get_full_path(root_handle, name);
+	}
+
+	inline std::wstring get_path_from_handle(const HANDLE handle, _Out_ bool& whitelisted, bool get_nt_path = false)
 	{
 		whitelisted = false;
 
@@ -720,8 +728,8 @@ namespace dr_semu::filesystem::helpers
 
 	inline std::wstring get_original_full_path(const HANDLE root_handle, const std::wstring& name)
 	{
-		const auto drcontext = dr_get_current_drcontext();
-		const auto tid = dr_get_thread_id(drcontext);
+		//const auto drcontext = dr_get_current_drcontext();
+		//const auto tid = dr_get_thread_id(drcontext);
 
 		const auto full_path = get_full_path(root_handle, name);
 

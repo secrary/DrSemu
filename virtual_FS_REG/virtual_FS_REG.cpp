@@ -23,7 +23,7 @@ bool enable_privileges()
 	return true;
 }
 
-void generate_security_desciptor_for_files()
+void generate_security_descriptor_for_files()
 {
 	// generate sd
 	const auto sd_file_path = fs::temp_directory_path().wstring() + L"rndm_file.fs";
@@ -81,19 +81,6 @@ std::wstring get_temp_dir()
 
 int __cdecl wmain(const int argc, const WCHAR** argv)
 {
-	//enable_privileges();
-	//const registry::virtual_registry virtual_regx(L"dr_semu_x");
-	//if (virtual_regx.is_loaded)
-	//{
-	//	spdlog::info(L"virtual_REG is running at virtualization root [{}]",
-	//		virtual_regx.virtual_reg_root.c_str());
-	//}
-	//else
-	//{
-	//	spdlog::critical("Failed to start virtual REG");
-	//}
-	//return 0x123;
-	///
 	spdlog::info("Virtual Filesystem & Registry");
 	if (argc < 3)
 	{
@@ -111,7 +98,7 @@ int __cdecl wmain(const int argc, const WCHAR** argv)
 	const auto current_vm_prefix = L"dr_semu_" + vm_index_string;
 	std::error_code err_code{};
 
-	/// pipe to commicate with a launcher
+	/// pipe to communicate with a launcher
 	std::wstring pipe_name{};
 	if (argc > 1)
 	{
@@ -129,7 +116,7 @@ int __cdecl wmain(const int argc, const WCHAR** argv)
 		return -1;
 	}
 
-	spdlog::info("Conntected to a Launcher");
+	spdlog::info("Connected to a Launcher");
 
 	const auto vm_directory_path = get_temp_dir() + current_vm_prefix;
 	if (fs::exists(vm_directory_path))
@@ -167,7 +154,7 @@ int __cdecl wmain(const int argc, const WCHAR** argv)
 	}
 #endif
 	// generate sd with all permissions
-	generate_security_desciptor_for_files();
+	generate_security_descriptor_for_files();
 
 	// Start the provider using the options we set up.
 	virtual_fs::fs_provider fs_provider;

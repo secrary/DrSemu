@@ -19,6 +19,8 @@ namespace virtual_fs
 
 	private:
 
+		const std::wstring vm_path_start_{LR"(\dr_semu_)"};
+
 		///////////////////////////////////////////////////////////////////////////////////////////////
 		// Overrides of the virtual callback functions from the VirtualizationInstance base class that
 		// this class will implement.
@@ -150,11 +152,11 @@ namespace virtual_fs
 		) override;
 
 		// Helper routine 
-		static bool populate_dir_info_for_path(
+		bool populate_dir_info_for_path(
 			_In_ const std::wstring& relative_path,
 			_In_ dir_info* dir_info,
 			_In_ const std::wstring& search_expression
-		);
+		) const;
 
 
 		// An enumeration session starts when StartDirEnum is invoked and ends when EndDirEnum is invoked.
