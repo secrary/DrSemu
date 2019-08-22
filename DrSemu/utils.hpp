@@ -351,7 +351,7 @@ namespace dr_semu::utils
 				return {};
 			}
 
-			const auto ptr_name_information = (POBJECT_NAME_INFORMATION)(name_information.get());
+			const auto ptr_name_information = reinterpret_cast<POBJECT_NAME_INFORMATION>(name_information.get());
 			if (ptr_name_information->Name.Buffer == nullptr)
 			{
 				is_unnamed = true;

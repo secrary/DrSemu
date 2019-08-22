@@ -609,8 +609,13 @@ namespace dr_semu::filesystem::handlers
 		const auto ptr_file_information = PVOID(dr_syscall_get_param(drcontext, 2)); // FileInformation
 		const auto length = ULONG(dr_syscall_get_param(drcontext, 3)); // Length
 		const auto file_information_class = FILE_INFORMATION_CLASS(dr_syscall_get_param(drcontext, 4));
-		// FileInformationClass
 
+		if (handle == INVALID_HANDLE_VALUE)
+		{
+			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
+			return SYSCALL_SKIP;
+		}
+		
 		HANDLE virtual_handle{};
 		auto access_denied = false;
 		const auto is_virtual_handle = helpers::get_virtual_handle_fs(handle, virtual_handle, access_denied);
@@ -624,7 +629,7 @@ namespace dr_semu::filesystem::handlers
 		const auto file_path = helpers::get_path_from_handle(handle, whitelisted);
 		const std::string file_path_ascii(file_path.begin(), file_path.end());
 
-		dr_printf("[Dr.Semu] file_path: %ls\n%d\n", file_path.c_str(), file_information_class);
+		//dr_printf("[Dr.Semu] file_path: %ls\nclass: %d\n", file_path.c_str(), file_information_class);
 		
 		const auto return_status = NtQueryInformationFile(is_virtual_handle ? virtual_handle : handle,
 		                                                  ptr_io_status_block, ptr_file_information, length,
@@ -640,19 +645,32 @@ namespace dr_semu::filesystem::handlers
 		query_file_info["NtQueryInformationFile"]["success"] = is_success;
 		shared_variables::json_concurrent_vector.push_back(query_file_info);
 
-		// TODO (lasha): redirect data from FileStandardInformation
 		if (is_success)
 		{
-			if (file_information_class == FileNameInformation)
+			if (file_information_class == FileNameInformation ||
+				file_information_class == FileNormalizedNameInformation
+				)
 			{
-				const auto ptr_name_information = (PFILE_NAME_INFORMATION)ptr_file_information;
+				const auto ptr_name_information = static_cast<PFILE_NAME_INFORMATION>(ptr_file_information);
 				// FileName: The name string is not null-terminated.
 				// FileNameLength: unsigned integer that specifies the length, in bytes, of the file name contained within the FileName field.
-				dr_printf("info: %ls\n", ptr_name_information->FileName);
-				// filename looks like:  \Users\XXX\AppData (without c:)
+				std::wstring file_name(ptr_name_information->FileName, ptr_name_information->FileNameLength / sizeof(TCHAR));
+				
+				// filename looks like:  \Users\XXX\AppData (without x:)
+				// \path\to\dr_semu_x\Users\x => \Users\x
+				helpers::file_name_info_redirect(file_name);
+				memset(ptr_name_information->FileName, 0, ptr_name_information->FileNameLength);
+				ptr_name_information->FileNameLength = file_name.length() * sizeof(TCHAR);
+				ptr_io_status_block->Information = ptr_name_information->FileNameLength + sizeof(ptr_name_information->FileNameLength);
+				memcpy_s(ptr_name_information->FileName, ptr_name_information->FileNameLength, file_name.c_str(),
+				         file_name.length() * sizeof(TCHAR));
+				//dr_printf("info: %ls\nlength: %d\nsts: %d\n", ptr_name_information->FileName,
+				//          ptr_name_information->FileNameLength, ptr_io_status_block->Status);
+				
 			}
+
 		}
-		
+
 		if (is_virtual_handle)
 		{
 			NtClose(virtual_handle);
@@ -885,7 +903,6 @@ namespace dr_semu::filesystem::handlers
 		const auto ptr_handle = PHANDLE(dr_syscall_get_param(drcontext, 0)); // FileHandle
 		const auto desired_access = ACCESS_MASK(dr_syscall_get_param(drcontext, 1)); // DesiredAccess
 		const auto ptr_object_attributes = POBJECT_ATTRIBUTES(dr_syscall_get_param(drcontext, 2));
-		// ObjectAttributes
 		const auto ptr_io_status_block = PIO_STATUS_BLOCK(dr_syscall_get_param(drcontext, 3)); // IoStatusBlock
 		const auto ptr_allocation_size = PLARGE_INTEGER(dr_syscall_get_param(drcontext, 4)); // AllocationSize
 		const auto file_attributes = ULONG(dr_syscall_get_param(drcontext, 5)); // FileAttributes
@@ -994,7 +1011,7 @@ namespace dr_semu::filesystem::handlers
 			NtClose(virtual_object_attributes.RootDirectory);
 		}
 
-
+	
 		dr_syscall_set_result(drcontext, return_status);
 		return SYSCALL_SKIP;
 	}

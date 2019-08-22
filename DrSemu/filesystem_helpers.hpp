@@ -20,7 +20,7 @@ namespace dr_semu::filesystem::helpers
 	inline std::vector<std::wstring> whitelisted_starts{
 		// "supports Windows sockets applications and is contained in the afd.sys file. The afd.sys driver runs in kernel mode and manages the Winsock TCP/IP communications protocol"
 		LR"(\Device\Afd)",
-
+		LR"(\??\MountPointManager)",
 		LR"(\Device\NamedPipe\)",
 		LR"(\??\PIPE\)",
 	};
@@ -612,9 +612,9 @@ namespace dr_semu::filesystem::helpers
 		const auto loc = utils::find_case_insensitive(mailslot_path, shared_variables::current_vm_name);
 		if (loc != std::wstring::npos)
 		{
-			dr_printf("[redirect_mailslot_string] there should be vm_name in maislot name: %ls\n",
+			dr_printf("[redirect_mailslot_string] there should be vm_name in mailslot name: %ls\n",
 			          mailslot_path.c_str());
-			dr_messagebox("vm_name in maislot name");
+			dr_messagebox("vm_name in mailslot name");
 			return true;
 		}
 
@@ -673,11 +673,11 @@ namespace dr_semu::filesystem::helpers
 			{
 				if (is_handle_file_or_dir(ptr_object_attributes->RootDirectory))
 				{
-					bool acccess_denied = false;
+					auto access_denied = false;
 					is_virtual_handle =
 						get_virtual_handle_fs(ptr_object_attributes->RootDirectory, virtual_file_handle,
-						                      acccess_denied);
-					if (acccess_denied)
+						                      access_denied);
+					if (access_denied)
 					{
 						return false;
 					}
@@ -697,16 +697,6 @@ namespace dr_semu::filesystem::helpers
 				}
 			}
 		}
-
-		//const auto test_str = helpers::get_full_path(virtual_object_attributes->RootDirectory, object_name);
-		//if (
-		//	utils::find_case_insensitive(test_str, LR"(C:\)") != std::wstring::npos &&
-		//	utils::find_case_insensitive(test_str, shared_variables::virtual_filesystem_location.wstring()) == std::wstring::npos
-		//	)
-		//{
-		//	dr_printf("Failed to get a virtual_path: %ls\n", test_str.c_str());
-		//	dr_messagebox("failed to get a virtual path");
-		//}
 
 		const auto unicode_string = new UNICODE_STRING{};
 		is_new_unicode = true;
@@ -748,4 +738,18 @@ namespace dr_semu::filesystem::helpers
 	{
 		return get_original_full_path(ptr_object_attributes->RootDirectory, ptr_object_attributes->ObjectName);
 	}
+
+	inline bool file_name_info_redirect(std::wstring& file_path)
+	{
+		// \path\dr_semu_x\Windows\abc => \Windows\abc
+
+		const auto vm_name_index = utils::find_case_insensitive(file_path, shared_variables::current_vm_name);
+		if (vm_name_index != std::wstring::npos)
+		{
+			file_path = file_path.substr(vm_name_index + shared_variables::current_vm_name.length(), std::wstring::npos);
+		}
+
+		return true;
+	}
+	
 } // namespace dr_semu::filesystem::helpers
