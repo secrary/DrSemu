@@ -624,7 +624,7 @@ namespace dr_semu::filesystem::handlers
 		const auto file_path = helpers::get_path_from_handle(handle, whitelisted);
 		const std::string file_path_ascii(file_path.begin(), file_path.end());
 
-		//dr_printf("file_path: %ls\n%d\n", file_path.c_str(), file_information_class);
+		dr_printf("[Dr.Semu] file_path: %ls\n%d\n", file_path.c_str(), file_information_class);
 		
 		const auto return_status = NtQueryInformationFile(is_virtual_handle ? virtual_handle : handle,
 		                                                  ptr_io_status_block, ptr_file_information, length,
@@ -641,6 +641,17 @@ namespace dr_semu::filesystem::handlers
 		shared_variables::json_concurrent_vector.push_back(query_file_info);
 
 		// TODO (lasha): redirect data from FileStandardInformation
+		if (is_success)
+		{
+			if (file_information_class == FileNameInformation)
+			{
+				const auto ptr_name_information = (PFILE_NAME_INFORMATION)ptr_file_information;
+				// FileName: The name string is not null-terminated.
+				// FileNameLength: unsigned integer that specifies the length, in bytes, of the file name contained within the FileName field.
+				dr_printf("info: %ls\n", ptr_name_information->FileName);
+				// filename looks like:  \Users\XXX\AppData (without c:)
+			}
+		}
 		
 		if (is_virtual_handle)
 		{

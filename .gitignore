@@ -338,4 +338,7 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
+
+# Dr.Semu
 /virtual_FS_REG/virtual_reg
+/test_sample/test_file.temp

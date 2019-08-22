@@ -5,7 +5,7 @@
 
 int main()
 {
-	const auto file_handle = CreateFile(L"test.file", GENERIC_ALL, 0, nullptr, CREATE_ALWAYS, 0, 0);
+	const auto file_handle = CreateFile(L"test_file.temp", GENERIC_ALL, 0, nullptr, CREATE_ALWAYS, 0, 0);
 	if (file_handle != INVALID_HANDLE_VALUE)
 	{
 		const std::shared_ptr<wchar_t> handle_path{ new wchar_t[0x1000] };
