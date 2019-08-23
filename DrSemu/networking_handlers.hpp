@@ -1,6 +1,7 @@
 #pragma once
 
 #include "includes.h"
+//#include "wininet.h"
 
 namespace dr_semu::networking::config
 {
@@ -23,12 +24,55 @@ namespace dr_semu::networking::handlers
 		}
 	}
 
+
+	inline void pro_InternetOpenUrl(void* wrapcxt, void** user_data)
+	{
+		//INTERNETAPI_(HINTERNET) InternetOpenUrlW(
+		//    _In_ HINTERNET hInternet,
+		//    _In_ LPCWSTR lpszUrl,
+		//    _In_reads_opt_(dwHeadersLength) LPCWSTR lpszHeaders,
+		//    _In_ DWORD dwHeadersLength,
+		//    _In_ DWORD dwFlags,
+		//    _In_opt_ DWORD_PTR dwContext
+		//    );
+		
+		const auto url = static_cast<LPCWSTR>(drwrap_get_arg(wrapcxt, 1));
+		if (url != nullptr)
+		{
+			const std::wstring url_string(url, wcslen(url));
+			if (!url_string.empty())
+			{
+				const std::string url_string_ascii(url_string.begin(), url_string.end());
+				json open_url;
+				open_url["InternetOpenUrl"]["before"] = {
+					{"url", url_string_ascii},
+				};
+				shared_variables::json_concurrent_vector.push_back(open_url);
+			}
+		}
+			
+	}
+	
+	inline void pro_gethostbyname(void* wrapcxt, void** user_data)
+	{
+		// struct hostent FAR * PASCAL FAR gethostbyname(_In_z_ const char FAR * name);
+		constexpr auto args_size = sizeof(PCHAR);
+
+		const auto name = static_cast<PCHAR>(drwrap_get_arg(wrapcxt, 0));
+		const std::string url_string_ascii(name, strlen(name));
+		json host_name;
+		host_name["gethostbyname"]["before"] = {
+			{"name", url_string_ascii},
+		};
+		shared_variables::json_concurrent_vector.push_back(host_name);
+	}
+
 	inline void pro_url_download_to_file(void* wrapcxt, void** user_data)
 	{
 		// STDAPI URLDownloadToFileW(_In_opt_ LPUNKNOWN, _In_ LPCWSTR,_In_opt_ LPCWSTR,DWORD, _In_opt_ LPBINDSTATUSCALLBACK);      
 
-		constexpr auto args_size = sizeof(LPUNKNOWN) + sizeof(LPCWSTR) + sizeof(LPCWSTR) + sizeof(DWORD) + sizeof(
-			LPBINDSTATUSCALLBACK);
+		constexpr auto args_size = sizeof(LPUNKNOWN) + sizeof(LPCWSTR) + sizeof(LPCWSTR) + sizeof(DWORD) + 
+			sizeof(LPBINDSTATUSCALLBACK);
 
 		const auto url = static_cast<LPCWSTR>(drwrap_get_arg(wrapcxt, 1));
 		const auto file_name_opt = static_cast<LPCWSTR>(drwrap_get_arg(wrapcxt, 2));
