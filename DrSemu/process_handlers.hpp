@@ -715,6 +715,8 @@ namespace dr_semu::process::handlers
 		{
 			if (return_value == STATUS_OBJECT_NAME_NOT_FOUND)
 			{
+				// TODO (lasha): check in pre_handler_:
+				// if path == x:\\windows\\ and not_found => x:\windows\\ system32/syswow64
 				dr_printf("[Dr.Semu:NtCreateProcess:Post] OBJECT_NAME_NOT_FOUND: %s\n",
 				          pre_info.image_path_ascii.c_str());
 			}
