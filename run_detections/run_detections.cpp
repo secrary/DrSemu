@@ -78,11 +78,15 @@ int wmain(int argc, wchar_t** argv)
 		if (lua_script.path().extension() == L".lua")
 		{
 			verdict_string = lua_scan::run_rule(lua_script.path().string(), report_directory_ascii);
-			if (!verdict_string.empty())
+			if (!verdict_string.empty() && verdict_string != "CLEAN")
 			{
-				break; // TODO (lasha): not only the first occurrence
+				break;
 			}
 		}
+	}
+	if (verdict_string.empty())
+	{
+		verdict_string = "NO DETECTIONS";
 	}
 	const auto verdict_wide = std::wstring(verdict_string.begin(), verdict_string.end());
 	const auto slot_result = report_slot.write_slot(verdict_wide);
