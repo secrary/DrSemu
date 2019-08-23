@@ -783,4 +783,5 @@ void module_load_event(void* drcontext, const module_data_t* mod, bool Loaded)
 	              nullptr);
 	wrap_function(mod->handle, "gethostbyname", dr_semu::networking::handlers::pro_gethostbyname, nullptr);
 	wrap_function(mod->handle, "InternetOpenUrlW", dr_semu::networking::handlers::pro_InternetOpenUrlW, nullptr);
+	wrap_function(mod->handle, "InternetOpenUrlA", dr_semu::networking::handlers::pro_InternetOpenUrlA, nullptr);
 }

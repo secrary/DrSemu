@@ -44,7 +44,7 @@ namespace dr_semu::networking::handlers
 			{
 				const std::string url_string_ascii(url_string.begin(), url_string.end());
 				json open_url;
-				open_url["InternetOpenUrl"]["before"] = {
+				open_url["InternetOpenUrlW"]["before"] = {
 					{"url", url_string_ascii},
 				};
 				shared_variables::json_concurrent_vector.push_back(open_url);
@@ -53,6 +53,33 @@ namespace dr_semu::networking::handlers
 			
 	}
 	
+	inline void pro_InternetOpenUrlA(void* wrapcxt, void** user_data)
+	{
+		//INTERNETAPI_(HINTERNET) InternetOpenUrlA(
+		//	_In_ HINTERNET hInternet,
+		//	_In_ LPCSTR lpszUrl,
+		//	_In_reads_opt_(dwHeadersLength) LPCSTR lpszHeaders,
+		//	_In_ DWORD dwHeadersLength,
+		//	_In_ DWORD dwFlags,
+		//	_In_opt_ DWORD_PTR dwContext
+		//);
+
+		const auto url = static_cast<LPCSTR>(drwrap_get_arg(wrapcxt, 1));
+		if (url != nullptr)
+		{
+			const std::string url_string_ascii(url, strlen(url));
+			if (!url_string_ascii.empty())
+			{
+				json open_url;
+				open_url["InternetOpenUrlA"]["before"] = {
+					{"url", url_string_ascii},
+				};
+				shared_variables::json_concurrent_vector.push_back(open_url);
+			}
+		}
+
+	}
+
 	inline void pro_gethostbyname(void* wrapcxt, void** user_data)
 	{
 		// struct hostent FAR * PASCAL FAR gethostbyname(_In_z_ const char FAR * name);
