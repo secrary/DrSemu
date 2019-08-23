@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_set>
 #include <thread>
+#include <algorithm>
 
 #include "utils.hpp"
 
@@ -100,6 +101,7 @@ int main(int argc, char* argv[])
 		//
 	}
 	
+	std::transform(file_path_ascii.begin(), file_path_ascii.end(), file_path_ascii.begin(), tolower);
 	if (!fs::exists(file_path_ascii))
 	{
 		spdlog::critical("No such file/directory: {}\n", file_path_ascii);

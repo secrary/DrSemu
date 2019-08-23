@@ -629,7 +629,7 @@ namespace dr_semu::filesystem::handlers
 		const auto file_path = helpers::get_path_from_handle(handle, whitelisted);
 		const std::string file_path_ascii(file_path.begin(), file_path.end());
 
-		//dr_printf("[Dr.Semu] file_path: %ls\nclass: %d\n", file_path.c_str(), file_information_class);
+		//dr_printf("[NtQueryInformationFile] file_path: %ls\ninfo_class: %d\n", file_path.c_str(), file_information_class);
 		
 		const auto return_status = NtQueryInformationFile(is_virtual_handle ? virtual_handle : handle,
 		                                                  ptr_io_status_block, ptr_file_information, length,
@@ -664,10 +664,8 @@ namespace dr_semu::filesystem::handlers
 				ptr_io_status_block->Information = ptr_name_information->FileNameLength + sizeof(ptr_name_information->FileNameLength);
 				memcpy_s(ptr_name_information->FileName, ptr_name_information->FileNameLength, file_name.c_str(),
 				         file_name.length() * sizeof(TCHAR));
-				//dr_printf("info: %ls\nlength: %d\nsts: %d\n", ptr_name_information->FileName,
-				//          ptr_name_information->FileNameLength, ptr_io_status_block->Status);
-				
 			}
+			
 
 		}
 
@@ -824,8 +822,6 @@ namespace dr_semu::filesystem::handlers
 		if (file_path_original.find(LR"(\dr_semu_)") != std::wstring::npos)
 		{
 			*ptr_out_handle = nullptr;
-			//xxx;
-			// TODO (lasha): redirect data from NtQueryInformationFile
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
 			return SYSCALL_SKIP;
 		}
@@ -944,11 +940,11 @@ namespace dr_semu::filesystem::handlers
 			return SYSCALL_SKIP;
 		}
 
-		const auto virtual_path = helpers::get_full_path(virtual_object_attributes.RootDirectory,
+		auto virtual_path = helpers::get_full_path(virtual_object_attributes.RootDirectory,
 		                                                 virtual_object_attributes.ObjectName->Buffer);
 		if (utils::find_case_insensitive(virtual_path, LR"(C:\)") != std::wstring::npos &&
 			utils::find_case_insensitive(
-				virtual_path, shared_variables::virtual_filesystem_location) == std::wstring::npos)
+				virtual_path, shared_variables::virtual_filesystem_path) == std::wstring::npos)
 		{
 			dr_printf("[NtCreateFile] [%d] failed to get a virtual path: %ls\n", tid, virtual_path.c_str());
 			dr_messagebox("failed to get a virtual path");
@@ -962,16 +958,17 @@ namespace dr_semu::filesystem::handlers
 		and there is such file => change syswow64 with system32
 		C:\Windows\system32\en\PING.EXE.mui
 		*/
-		// TODO (lasha): Similar problem with notepad.exe but the solution can not solve the issue with notepad.exe
+		// Similar issue with Notepad.exe but but happens before the client injection:
 		// PROBLEM: our client is injected after looking for .mui files (is early injection possible solution?)
-		// Is the problem serious? I don't think so, not many executables use .mui files especially malware
+		// Is the problem serious? I don't think so, not many executables use .mui files, especially malware
 		if (create_disposition == FILE_OPEN &&
 			virtual_path.ends_with(L".mui") &&
 			utils::find_case_insensitive(virtual_path, LR"(syswow64)") != std::wstring::npos &&
 			!fs::exists(virtual_path)
 		)
 		{
-			// TODO (lasha): change syswow64 to system32 (syswow64_to_system32(wstr))
+			virtual_path = helpers::syswow64_to_system32(virtual_path);
+			// TODO (lasha): change syswow64 to system32 (virtual_object_attributes)
 			//dr_printf("path: %ls\ncd: 0x%x", virtual_path.c_str(), create_disposition);
 		}
 

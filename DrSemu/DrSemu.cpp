@@ -42,18 +42,18 @@ void sleep_and_die(void* limit)
 inline std::wstring get_virtual_root_device_form()
 {
 	TCHAR device_name[MAX_PATH]{};
-	if (dr_semu::shared_variables::virtual_filesystem_location.empty())
+	if (dr_semu::shared_variables::virtual_filesystem_path.empty())
 	{
 		dr_printf("v_fs_location variable is empty\n");
 		return {};
 	}
-	const std::wstring virtual_drive_name(dr_semu::shared_variables::virtual_filesystem_location, 0, 2);
+	const std::wstring virtual_drive_name(dr_semu::shared_variables::virtual_filesystem_path, 0, 2);
 	// C:\dir2\dir2 => C:
 	QueryDosDevice(virtual_drive_name.c_str(), device_name, MAX_PATH);
 
 	const std::wstring device_path(device_name, wcslen(device_name));
 
-	return device_path + std::wstring{dr_semu::shared_variables::virtual_filesystem_location, 2};
+	return device_path + std::wstring{dr_semu::shared_variables::virtual_filesystem_path, 2};
 }
 
 inline std::vector<std::wstring> get_drive_strings();
@@ -203,7 +203,7 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 
 	const auto vm_index = vm_index_option.get_value();
 	dr_semu::shared_variables::current_vm_name = L"dr_semu_" + std::to_wstring(vm_index);
-	dr_semu::shared_variables::virtual_filesystem_location = fs::path{
+	dr_semu::shared_variables::virtual_filesystem_path = fs::path{
 		temp_dir + dr_semu::shared_variables::current_vm_name
 	};
 	dr_semu::shared_variables::v_fs_device_form = get_virtual_root_device_form();
@@ -244,10 +244,7 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 				dr_abort();
 			}
 		}
-		else
-		{
-			// TODO (lasha): if explorer => x64
-		}
+		// static information from a fake Explorer is not interesting...
 	}
 
 	if (!dr_semu_init())
@@ -729,7 +726,10 @@ event_pre_syscall(void* drcontext, int sysnum)
 		{
 			return dr_semu::objects::handlers::NtWaitForSingleObject_handler(drcontext);
 		}
-
+		if (syscall_name == ntqueryobject)
+		{
+			return dr_semu::objects::handlers::NtQueryObject_handler(drcontext);
+		}
 
 		return dr_semu::SYSCALL_CONTINUE;
 	}

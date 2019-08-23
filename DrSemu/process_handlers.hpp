@@ -16,8 +16,8 @@ namespace dr_semu::process::handlers
 		//		_In_ PCONTEXT ThreadContext
 		//	);
 
-		const auto thread_handle = HANDLE(dr_syscall_get_param(drcontext, 0));
-		const auto ptr_thread_context = PCONTEXT(dr_syscall_get_param(drcontext, 1));
+		//const auto thread_handle = HANDLE(dr_syscall_get_param(drcontext, 0));
+		//const auto ptr_thread_context = PCONTEXT(dr_syscall_get_param(drcontext, 1));
 
 		//if (ptr_thread_context != nullptr)
 		//{
@@ -87,19 +87,19 @@ namespace dr_semu::process::handlers
 		//		_In_ BOOLEAN TestAlert
 		//	);
 
-		const auto ptr_context_record = PCONTEXT(dr_syscall_get_param(drcontext, 0));
-		const auto test_alert = BOOLEAN(dr_syscall_get_param(drcontext, 1));
-
-		if (ptr_context_record != nullptr)
-		{
-#ifdef _WIN64
-		const auto ip = ptr_context_record->Rip;
-#else
-			const auto ip = ptr_context_record->Eip;
-#endif // WIN32
-
-			//dr_printf("[NtContinue] EIP: 0x%lx\n", ip);
-		}
+//		const auto ptr_context_record = PCONTEXT(dr_syscall_get_param(drcontext, 0));
+//		//const auto test_alert = BOOLEAN(dr_syscall_get_param(drcontext, 1));
+//
+//		if (ptr_context_record != nullptr)
+//		{
+//#ifdef _WIN64
+//		const auto ip = ptr_context_record->Rip;
+//#else
+//			const auto ip = ptr_context_record->Eip;
+//#endif // WIN32
+//
+//			//dr_printf("[NtContinue] EIP: 0x%lx\n", ip);
+//		}
 
 		return SYSCALL_CONTINUE;
 	}
@@ -116,16 +116,16 @@ namespace dr_semu::process::handlers
 		//		_In_ ULONG ProcessInformationLength
 		//	);
 
-		const auto process_handle = HANDLE(dr_syscall_get_param(drcontext, 0));
-		const auto process_info_class = PROCESSINFOCLASS(dr_syscall_get_param(drcontext, 1));
-		const auto ptr_process_information = PVOID(dr_syscall_get_param(drcontext, 2));
-		const auto process_info_length = ULONG(dr_syscall_get_param(drcontext, 3));
+		//const auto process_handle = HANDLE(dr_syscall_get_param(drcontext, 0));
+		//const auto process_info_class = PROCESSINFOCLASS(dr_syscall_get_param(drcontext, 1));
+		//const auto ptr_process_information = PVOID(dr_syscall_get_param(drcontext, 2));
+		//const auto process_info_length = ULONG(dr_syscall_get_param(drcontext, 3));
 
-		if (process_info_class == ProcessDefaultHardErrorMode)
-		{
-			const auto ptr_error_mode = static_cast<PULONG>(ptr_process_information);
-			//dr_printf("[ProcessDefaultHardErrorMode] error_mode: 0x%x\n", *ptr_error_mode);
-		}
+		//if (process_info_class == ProcessDefaultHardErrorMode)
+		//{
+		//	const auto ptr_error_mode = static_cast<PULONG>(ptr_process_information);
+		//	//dr_printf("[ProcessDefaultHardErrorMode] error_mode: 0x%x\n", *ptr_error_mode);
+		//}
 
 		return SYSCALL_CONTINUE;
 	}
@@ -195,7 +195,8 @@ namespace dr_semu::process::handlers
 			//#define SEM_NOGPFAULTERRORBOX       0x0002
 			//#define SEM_NOALIGNMENTFAULTEXCEPT  0x0004
 			//#define SEM_NOOPENFILEERRORBOX      0x8000
-			const auto ptr_error_mode = static_cast<PULONG>(ptr_out_process_information);
+			
+			//const auto ptr_error_mode = static_cast<PULONG>(ptr_out_process_information);
 			//dr_printf("error_mode: 0x%lx\n", *ptr_error_mode);
 		}
 
@@ -442,7 +443,7 @@ namespace dr_semu::process::handlers
 		//		_In_opt_ PLARGE_INTEGER DelayInterval
 		//	);
 
-		const auto alertable = BOOLEAN(dr_syscall_get_param(drcontext, 0)); // Alertable
+		//const auto alertable = BOOLEAN(dr_syscall_get_param(drcontext, 0)); // Alertable
 		const auto ptr_opt_delay_interval = PLARGE_INTEGER(dr_syscall_get_param(drcontext, 1)); // DelayInterval
 
 		/// trace syscall
@@ -636,7 +637,7 @@ namespace dr_semu::process::handlers
 		const std::string command_line_ascii(command_line.begin(), command_line.end());
 
 		auto target_app_arch = arch::x86_32;
-		const auto result = static_info::get_static_info_and_arch(relocated_path_ascii, target_app_arch);
+		static_info::get_static_info_and_arch(relocated_path_ascii, target_app_arch);
 		const auto is_target_x86 = target_app_arch == arch::x86_32;
 
 		// we need to save "pre call" information and use/save them in "post call" callback
@@ -644,7 +645,7 @@ namespace dr_semu::process::handlers
 		pre_info.image_path_ascii = image_path_ascii;
 		pre_info.command_line_ascii = command_line_ascii;
 		pre_info.is_x86 = is_target_x86;
-		pre_info.is_suspended = false; // TODO (x)
+		pre_info.is_suspended = thread_flags & THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
 
 		pre_info.ptr_proc_handle = ptr_out_proc_handle;
 		pre_info.ptr_thread_handle = ptr_out_thread_handle;
@@ -834,7 +835,7 @@ namespace dr_semu::process::handlers
 		//	);
 
 
-		const auto process_handle = HANDLE(dr_syscall_get_param(drcontext, 0)); // ProcessHandle
+		//const auto process_handle = HANDLE(dr_syscall_get_param(drcontext, 0)); // ProcessHandle
 
 		// nothing to hide, maybe some loggings
 		return SYSCALL_CONTINUE;

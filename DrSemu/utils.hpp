@@ -91,6 +91,7 @@ constexpr auto ntopensemaphore = "NtOpenSemaphore";
 constexpr auto ntcreateevent = "NtCreateEvent";
 constexpr auto ntopenevent = "NtOpenEvent";
 constexpr auto ntwaitforsingleobject = "NtWaitForSingleObject";
+constexpr auto ntqueryobject = "NtQueryObject";
 
 namespace dr_semu
 {
@@ -118,7 +119,7 @@ namespace dr_semu
 		inline arch current_app_arch = arch::x86_32;
 		inline bool are_children = false;
 		inline std::wstring current_vm_name{};
-		inline fs::path virtual_filesystem_location{};
+		inline fs::path virtual_filesystem_path{};
 		inline std::wstring v_fs_device_form{};
 		inline size_t dumb_explorer_pid{};
 		inline std::wstring main_launcher_slot_name{};
@@ -499,6 +500,7 @@ inline bool dr_semu_init()
 		ntcreateevent,
 		ntopenevent,
 		ntwaitforsingleobject,
+		ntqueryobject,
 
 #endif
 	};

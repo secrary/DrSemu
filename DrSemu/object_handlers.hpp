@@ -2,9 +2,57 @@
 
 #include "includes.h"
 #include "object_helpers.hpp"
+#include "filesystem_helpers.hpp"
 
 namespace dr_semu::objects::handlers
 {
+	inline bool NtQueryObject_handler(void* drcontext)
+	{
+		//NTSYSCALLAPI
+		//	NTSTATUS
+		//	NTAPI
+		//	NtQueryObject(
+		//		_In_opt_ HANDLE Handle,
+		//		_In_ OBJECT_INFORMATION_CLASS ObjectInformationClass,
+		//		_Out_writes_bytes_opt_(ObjectInformationLength) PVOID ObjectInformation,
+		//		_In_ ULONG ObjectInformationLength,
+		//		_Out_opt_ PULONG ReturnLength
+		//	);
+
+		const auto handle = HANDLE(dr_syscall_get_param(drcontext, 0));
+		const auto object_information_class = OBJECT_INFORMATION_CLASS(dr_syscall_get_param(drcontext, 1));
+		const auto ptr_out_object_information = PVOID(dr_syscall_get_param(drcontext, 2));
+		const auto length = ULONG(dr_syscall_get_param(drcontext, 3));
+		const auto ptr_out_opt_length = PULONG(dr_syscall_get_param(drcontext, 4));
+
+		//dr_printf("[NtQueryObject] info_class: %d\n", object_information_class);
+
+		const auto return_status = NtQueryObject(handle, object_information_class, ptr_out_object_information, length, ptr_out_opt_length);
+		const auto is_success = NT_SUCCESS(return_status);
+
+		//ObjectNameInformation
+		if (is_success)
+		{
+			if (object_information_class == ObjectNameInformation && filesystem::helpers::is_handle_file_or_dir(handle))
+			{
+				const auto ptr_name_information = static_cast<POBJECT_NAME_INFORMATION>(ptr_out_object_information);
+				std::wstring name_string;
+				utils::unicode_string_to_wstring(&ptr_name_information->Name, name_string);
+				
+				// \Device\HarddiskVolumeX\Users\XXX\AppData\Local\Temp\dr_semu_1\folder\test_file.temp => \Device\HarddiskVolumeX\folder\test_file.temp
+				filesystem::helpers::virtual_to_original_hard_disk_volume(name_string);
+				memset(ptr_name_information->Name.Buffer, 0, ptr_name_information->Name.Length);
+				const auto name_size = name_string.length() * sizeof(TCHAR);
+				memcpy_s(ptr_name_information->Name.Buffer, ptr_name_information->Name.MaximumLength, name_string.c_str(), name_size);
+				ptr_name_information->Name.Length = name_size;
+				ptr_name_information->Name.MaximumLength = name_size + sizeof(TCHAR);
+			}
+		}
+
+		dr_syscall_set_result(drcontext, return_status);
+		return SYSCALL_SKIP;
+	}
+
 	inline bool NtWaitForSingleObject_handler(void* drcontext)
 	{
 		//NTSYSCALLAPI
@@ -18,7 +66,7 @@ namespace dr_semu::objects::handlers
 
 		const auto handle = HANDLE(dr_syscall_get_param(drcontext, 0));
 
-		//dr_printf("wait_handle: 0x%lx\n", handle);
+		//dr_printf("[NtWaitForSingleObject] handle: 0x%lx\n", handle);
 
 		return SYSCALL_CONTINUE;
 	}

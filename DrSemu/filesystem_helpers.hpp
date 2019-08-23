@@ -174,7 +174,7 @@ namespace dr_semu::filesystem::helpers
 
 	inline std::wstring get_real_windows_directory()
 	{
-		return std::wstring{shared_variables::virtual_filesystem_location.wstring()[0]} + L":\\Windows";
+		return std::wstring{shared_variables::virtual_filesystem_path.wstring()[0]} + L":\\Windows";
 	}
 
 	inline bool redirect_system32_to_syswow64(std::wstring& path)
@@ -244,7 +244,7 @@ namespace dr_semu::filesystem::helpers
 		// if it's already relocated
 		if (
 			utils::find_case_insensitive(
-				original_path, shared_variables::virtual_filesystem_location.wstring()) != std::wstring::npos
+				original_path, shared_variables::virtual_filesystem_path.wstring()) != std::wstring::npos
 		)
 		{
 			relocated_path = original_path;
@@ -258,7 +258,7 @@ namespace dr_semu::filesystem::helpers
 			return false;
 		}
 		// D:\ => C:\path\to\virtual_fs
-		relocated_path.replace(loc - 1, 2, shared_variables::virtual_filesystem_location.wstring());
+		relocated_path.replace(loc - 1, 2, shared_variables::virtual_filesystem_path.wstring());
 
 
 		// NtCurrentTeb64()->TlsSlots[WOW64_TLS_FILESYSREDIR]
@@ -321,7 +321,7 @@ namespace dr_semu::filesystem::helpers
 
 		if (utils::find_case_insensitive(virtual_path, LR"(C:\)") != std::wstring::npos &&
 			utils::find_case_insensitive(
-				virtual_path, shared_variables::virtual_filesystem_location.wstring()) == std::wstring::npos
+				virtual_path, shared_variables::virtual_filesystem_path.wstring()) == std::wstring::npos
 		)
 		{
 			dr_printf("[TID: %d] Path should be virtual: %ls\n", tid, virtual_path.c_str());
@@ -332,7 +332,7 @@ namespace dr_semu::filesystem::helpers
 		auto original_path = virtual_path;
 		const auto loc = utils::find_case_insensitive(
 			virtual_path,
-			shared_variables::virtual_filesystem_location.wstring());
+			shared_variables::virtual_filesystem_path.wstring());
 
 		// if it's already relocated
 		if (loc == std::wstring::npos)
@@ -342,7 +342,7 @@ namespace dr_semu::filesystem::helpers
 		// C:\Temp\dir => C:
 		original_path.replace(
 			loc + 2,
-			shared_variables::virtual_filesystem_location.wstring().length() - 2, L"");
+			shared_variables::virtual_filesystem_path.wstring().length() - 2, L"");
 		return original_path;
 	}
 
@@ -388,7 +388,7 @@ namespace dr_semu::filesystem::helpers
 		// if it's already relocated
 		if (
 			utils::find_case_insensitive(
-				original_path, shared_variables::virtual_filesystem_location.wstring()) != std::wstring::npos
+				original_path, shared_variables::virtual_filesystem_path.wstring()) != std::wstring::npos
 		)
 		{
 			virtual_path = original_path;
@@ -466,7 +466,6 @@ namespace dr_semu::filesystem::helpers
 
 		if (original_path.find(LR"(\??\::)") == 0) // start
 		{
-			// TODO (lasha): how to handle?
 			return false;
 		}
 
@@ -528,7 +527,7 @@ namespace dr_semu::filesystem::helpers
 			// whitelisted, use old handle
 			return false;
 		}
-		if (utils::find_case_insensitive(dos_path, shared_variables::virtual_filesystem_location.wstring()) != std::
+		if (utils::find_case_insensitive(dos_path, shared_variables::virtual_filesystem_path.wstring()) != std::
 			wstring::npos)
 		{
 			return false;
@@ -749,6 +748,25 @@ namespace dr_semu::filesystem::helpers
 			file_path = file_path.substr(vm_name_index + shared_variables::current_vm_name.length(), std::wstring::npos);
 		}
 
+		return true;
+	}
+
+	// \Device\HarddiskVolumeX\Users\XXX\AppData\Local\Temp\dr_semu_1\folder\test_file.temp => \Device\HarddiskVolumeX\folder\test_file.temp
+	inline bool virtual_to_original_hard_disk_volume(std::wstring& hard_disk_path)
+	{
+		if (utils::find_case_insensitive(hard_disk_path, L"HarddiskVolume") == std::wstring::npos)
+		{
+			return false;
+		}
+
+		// c:\vm_root => \vm_root
+		const auto virtual_fs_path = shared_variables::virtual_filesystem_path.wstring().substr(2, std::wstring::npos);
+		const auto loc = utils::find_case_insensitive(hard_disk_path, virtual_fs_path);
+		if (loc != std::wstring::npos)
+		{
+			hard_disk_path.replace(loc, virtual_fs_path.length(), L"");
+		}
+		
 		return true;
 	}
 	
