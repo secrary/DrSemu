@@ -782,5 +782,5 @@ void module_load_event(void* drcontext, const module_data_t* mod, bool Loaded)
 	wrap_function(mod->handle, "URLDownloadToCacheFileW", dr_semu::networking::handlers::pro_url_download_to_cache_file,
 	              nullptr);
 	wrap_function(mod->handle, "gethostbyname", dr_semu::networking::handlers::pro_gethostbyname, nullptr);
-	wrap_function(mod->handle, "InternetOpenUrl", dr_semu::networking::handlers::pro_InternetOpenUrl, nullptr);
+	wrap_function(mod->handle, "InternetOpenUrlW", dr_semu::networking::handlers::pro_InternetOpenUrlW, nullptr);
 }

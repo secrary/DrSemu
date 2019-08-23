@@ -25,7 +25,7 @@ namespace dr_semu::networking::handlers
 	}
 
 
-	inline void pro_InternetOpenUrl(void* wrapcxt, void** user_data)
+	inline void pro_InternetOpenUrlW(void* wrapcxt, void** user_data)
 	{
 		//INTERNETAPI_(HINTERNET) InternetOpenUrlW(
 		//    _In_ HINTERNET hInternet,
@@ -35,7 +35,7 @@ namespace dr_semu::networking::handlers
 		//    _In_ DWORD dwFlags,
 		//    _In_opt_ DWORD_PTR dwContext
 		//    );
-		
+
 		const auto url = static_cast<LPCWSTR>(drwrap_get_arg(wrapcxt, 1));
 		if (url != nullptr)
 		{
