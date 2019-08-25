@@ -26,6 +26,8 @@ At this phase, `Dr.Semu` produces a JSON file, which contains information from t
 
 After terminating the process, based on `Dr.Semu` rules we receive if the executable is detected as malware or not.
 
+[Dr.Semu Rules/Detections](https://github.com/secrary/DrSemu-Detections)
+
 ### Dr.Semu rules
 
 They are written in `LUA` and use dynamic information from the interception and static information about the sample. It's trivial to add support of other languages.
