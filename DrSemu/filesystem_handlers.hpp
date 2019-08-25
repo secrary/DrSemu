@@ -539,8 +539,7 @@ namespace dr_semu::filesystem::handlers
 			memcpy_s(ptr_new_rename_information->FileName, path_size_in_bytes, target_virtual_path.c_str(),
 			         target_virtual_path.length() * sizeof(WCHAR));
 
-			auto is_whitelisted = false;
-			const auto old_path_virtual = helpers::get_path_from_handle(handle, is_whitelisted);
+			const auto old_path_virtual = helpers::get_path_from_handle(handle);
 			const auto old_path = helpers::normalize_path(helpers::virtual_to_original_fs(old_path_virtual));
 
 			//dr_printf("trg_vrt [%d]: %ls\n", tid, target_virtual_path.c_str());
@@ -625,8 +624,7 @@ namespace dr_semu::filesystem::handlers
 			return SYSCALL_SKIP;
 		}
 
-		bool whitelisted;
-		const auto file_path = helpers::get_path_from_handle(handle, whitelisted);
+		const auto file_path = helpers::get_path_from_handle(handle);
 		const std::string file_path_ascii(file_path.begin(), file_path.end());
 
 		//dr_printf("[NtQueryInformationFile] file_path: %ls\ninfo_class: %d\n", file_path.c_str(), file_information_class);
@@ -640,7 +638,7 @@ namespace dr_semu::filesystem::handlers
 		query_file_info["NtQueryInformationFile"]["before"] = {
 			{"handle", reinterpret_cast<DWORD>(handle)},
 			{"information_class", file_information_class},
-			{"file_path", file_path_ascii},
+			{"file_path", !file_path_ascii.empty() ? file_path_ascii : "<EMPTY>"},
 		};
 		query_file_info["NtQueryInformationFile"]["success"] = is_success;
 		shared_variables::json_concurrent_vector.push_back(query_file_info);
