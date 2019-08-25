@@ -57,14 +57,42 @@ namespace dr_semu::filesystem::helpers
 		return whitelisted_devices.find(handle_name) != whitelisted_devices.end();
 	}
 
+	inline std::wstring get_path_from_handle(const HANDLE handle, bool get_nt_path = false)
+	{
+		const auto path_type = get_nt_path ? VOLUME_NAME_NT : VOLUME_NAME_DOS;
+		auto number_of_wchar = GetFinalPathNameByHandle(handle, nullptr, 0, path_type);
+		if (number_of_wchar != 0U)
+		{
+			// If the function fails because lpszFilePath is too small to hold the string plus the terminating null character, the return value is the required buffer size, in TCHARs. 
+			// This value includes the size of the terminating null character.
+			const std::shared_ptr<wchar_t> handle_path{ new wchar_t[number_of_wchar] };
+			memset(handle_path.get(), 0, number_of_wchar * sizeof(wchar_t));
+
+			number_of_wchar = GetFinalPathNameByHandle(handle, handle_path.get(), number_of_wchar, path_type);
+
+			if (number_of_wchar != 0U)
+			{
+				const std::wstring dos_file_name{ handle_path.get(), number_of_wchar };
+				return dos_file_name;
+			}
+		}
+		else
+		{
+			auto is_unnamed = false;
+			const auto handle_name = utils::get_name_from_handle(handle, is_unnamed);
+			return handle_name;
+		}
+
+		return {};
+	}
+
 	// without redir
 	inline std::wstring get_full_path(const HANDLE root_handle, const std::wstring& name)
 	{
 		std::wstring root_path{};
 		if (root_handle != nullptr)
 		{
-			auto is_unnamed = false;
-			root_path = utils::get_name_from_handle(root_handle, is_unnamed);
+			root_path = get_path_from_handle(root_handle);
 		}
 
 		const auto full_path = root_path.empty() ? name : root_path + (name.empty() ? L"" : L"\\" + name);
@@ -87,7 +115,7 @@ namespace dr_semu::filesystem::helpers
 		return get_full_path(root_handle, name);
 	}
 
-	inline std::wstring get_path_from_handle(const HANDLE handle, _Out_ bool& whitelisted, bool get_nt_path = false)
+	inline std::wstring get_path_or_whitelist(const HANDLE handle, _Out_ bool& whitelisted, bool get_nt_path = false)
 	{
 		whitelisted = false;
 
@@ -146,30 +174,8 @@ namespace dr_semu::filesystem::helpers
 		}
 
 		// all handles should be to valid a file/dir
-		const auto path_type = get_nt_path ? VOLUME_NAME_NT : VOLUME_NAME_DOS;
-		auto number_of_wchar = GetFinalPathNameByHandle(handle, nullptr, 0, path_type);
-		if (number_of_wchar != 0U)
-		{
-			// If the function fails because lpszFilePath is too small to hold the string plus the terminating null character, the return value is the required buffer size, in TCHARs. 
-			// This value includes the size of the terminating null character.
-			const std::shared_ptr<wchar_t> handle_path{new wchar_t[number_of_wchar]};
-			memset(handle_path.get(), 0, number_of_wchar * sizeof(wchar_t));
-
-			number_of_wchar = GetFinalPathNameByHandle(handle, handle_path.get(), number_of_wchar, path_type);
-
-			if (number_of_wchar != 0U)
-			{
-				const std::wstring dos_file_name{handle_path.get(), number_of_wchar};
-				return dos_file_name;
-			}
-		}
-		else
-		{
-			dr_printf("unknown handle name\nhandle: 0x%x\nname: %ls\n", handle, handle_name.c_str());
-			dr_messagebox("check handle name");
-		}
-
-		return {};
+		const auto root_path = get_path_from_handle(handle, get_nt_path);
+		return root_path;
 	}
 
 	inline std::wstring get_real_windows_directory()
@@ -515,7 +521,7 @@ namespace dr_semu::filesystem::helpers
 		}
 
 		auto whitelisted = false;
-		auto dos_path = get_path_from_handle(handle, whitelisted);
+		auto dos_path = get_path_or_whitelist(handle, whitelisted);
 		if (dos_path.empty())
 		{
 			if (!whitelisted)

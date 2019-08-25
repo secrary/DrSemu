@@ -539,8 +539,7 @@ namespace dr_semu::filesystem::handlers
 			memcpy_s(ptr_new_rename_information->FileName, path_size_in_bytes, target_virtual_path.c_str(),
 			         target_virtual_path.length() * sizeof(WCHAR));
 
-			auto is_whitelisted = false;
-			const auto old_path_virtual = helpers::get_path_from_handle(handle, is_whitelisted);
+			const auto old_path_virtual = helpers::get_path_from_handle(handle);
 			const auto old_path = helpers::normalize_path(helpers::virtual_to_original_fs(old_path_virtual));
 
 			//dr_printf("trg_vrt [%d]: %ls\n", tid, target_virtual_path.c_str());
@@ -625,8 +624,7 @@ namespace dr_semu::filesystem::handlers
 			return SYSCALL_SKIP;
 		}
 
-		bool whitelisted;
-		const auto file_path = helpers::get_path_from_handle(handle, whitelisted);
+		const auto file_path = helpers::normalize_path(helpers::get_path_from_handle(handle));
 		const std::string file_path_ascii(file_path.begin(), file_path.end());
 
 		//dr_printf("[NtQueryInformationFile] file_path: %ls\ninfo_class: %d\n", file_path.c_str(), file_information_class);
@@ -801,7 +799,6 @@ namespace dr_semu::filesystem::handlers
 		const auto ptr_out_handle = PHANDLE(dr_syscall_get_param(drcontext, 0)); // FileHandle
 		const auto desired_access = ACCESS_MASK(dr_syscall_get_param(drcontext, 1)); // DesiredAccess
 		const auto ptr_object_attributes = POBJECT_ATTRIBUTES(dr_syscall_get_param(drcontext, 2));
-		// ObjectAttributes
 		const auto ptr_io_status_block = PIO_STATUS_BLOCK(dr_syscall_get_param(drcontext, 3)); // IoStatusBlock
 		const auto share_access = ULONG(dr_syscall_get_param(drcontext, 4)); // ShareAccess
 		const auto open_options = ULONG(dr_syscall_get_param(drcontext, 5)); // OpenOptions
@@ -842,8 +839,8 @@ namespace dr_semu::filesystem::handlers
 
 		/// trace syscall
 		std::string full_path_ascii{};
-		const auto full_path_wide = helpers::get_original_full_path(virtual_object_attributes.RootDirectory,
-		                                                            virtual_object_attributes.ObjectName);
+		const auto full_path_wide = helpers::normalize_path(helpers::get_original_full_path(virtual_object_attributes.RootDirectory,
+		                                                            virtual_object_attributes.ObjectName));
 		full_path_ascii = std::string(full_path_wide.begin(), full_path_wide.end());
 
 
@@ -862,9 +859,9 @@ namespace dr_semu::filesystem::handlers
 
 		json open_file_json;
 		open_file_json["NtOpenFile"]["before"] = {
-			{"path", full_path_ascii.c_str()},
+			{"path", full_path_ascii},
 			{"desired_access", desired_access},
-			{"object_name", full_path_ascii.c_str()},
+			//{"object_name", full_path_ascii},
 			{"share_access", share_access}
 		};
 		open_file_json["NtOpenFile"]["success"] = is_success;
@@ -1061,7 +1058,7 @@ namespace dr_semu::filesystem::handlers
 
 		json write_file;
 		write_file["NtWriteFile"]["before"] = {
-			{"path", full_path_ascii.c_str()},
+			{"path", !full_path_ascii.empty() ? full_path_ascii : "<EMPTY>"},
 		};
 		write_file["NtWriteFile"]["success"] = is_success;
 		shared_variables::json_concurrent_vector.push_back(write_file);
