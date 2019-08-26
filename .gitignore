@@ -342,3 +342,5 @@ healthchecksdb
 # Dr.Semu
 /virtual_FS_REG/virtual_reg
 /test_sample/test_file.temp
+/shared_libs/LIEF-0.9.0-win32
+/shared_libs/LIEF-0.9.0-win64

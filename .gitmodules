@@ -10,9 +10,6 @@
 [submodule "shared_libs/digestpp"]
 	path = shared_libs/digestpp
 	url = https://github.com/kerukuro/digestpp
-[submodule "shared_libs/pe_parse"]
-	path = shared_libs/pe_parse
-	url = https://github.com/trailofbits/pe-parse
 [submodule "shared_libs/cxxopts"]
 	path = shared_libs/cxxopts
 	url = https://github.com/jarro2783/cxxopts
