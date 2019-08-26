@@ -490,13 +490,87 @@ bool get_arch(const std::wstring& file_path, launchercli::arch& arch)
 {
 	const std::string file_path_ascii(file_path.begin(), file_path.end());
 	arch = launchercli::arch::x86_32;
+	if (!fs::exists(file_path)) {
+		return false;
+	}
 
-	// temp
-	if (file_path.find(L"explorer64") != std::wstring::npos)
+	const auto file_handle = CreateFile(file_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+	if (file_handle == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+
+	LARGE_INTEGER size{};
+	GetFileSizeEx(file_handle, &size);
+
+	SYSTEM_INFO sysInfo{};
+	GetSystemInfo(&sysInfo);
+
+	const auto file_map = CreateFileMapping(file_handle,
+		nullptr,
+		PAGE_READONLY,
+		size.HighPart,
+		size.LowPart,
+		nullptr);
+
+	if (file_map == nullptr)
+	{
+		CloseHandle(file_handle);
+		return false;
+	}
+
+	auto file_map_view = MapViewOfFile(file_map,
+		FILE_MAP_READ,
+		0,
+		0,
+		sysInfo.dwPageSize);
+
+	if (file_map_view == nullptr)
+	{
+		CloseHandle(file_map);
+		CloseHandle(file_handle);
+		return false;
+	}
+	// IMAGE_DOS_HEADER->e_lfanew
+	const auto e_lfanew = *reinterpret_cast<PDWORD>(static_cast<PBYTE>(file_map_view) + sizeof(IMAGE_DOS_HEADER) - sizeof(DWORD));
+	UnmapViewOfFile(file_map_view);
+
+	const auto nt_map_address = (e_lfanew / sysInfo.dwAllocationGranularity) * sysInfo.dwAllocationGranularity;
+	file_map_view = MapViewOfFile(file_map,
+		FILE_MAP_READ,
+		0,
+		nt_map_address,
+		sysInfo.dwPageSize);
+
+	if (file_map_view == nullptr)
+	{
+		CloseHandle(file_map);
+		CloseHandle(file_handle);
+		return false;
+	}
+
+	auto ptr_nt_header = (PIMAGE_NT_HEADERS)file_map_view;
+	if (nt_map_address != e_lfanew)
+	{
+		ptr_nt_header = PIMAGE_NT_HEADERS((PBYTE)ptr_nt_header + e_lfanew);
+	}
+
+	if (ptr_nt_header->FileHeader.Machine == IMAGE_FILE_MACHINE_I386) {
+		arch = launchercli::arch::x86_32;
+	}
+	else if (ptr_nt_header->FileHeader.Machine == IMAGE_FILE_MACHINE_AMD64)
 	{
 		arch = launchercli::arch::x86_64;
 	}
-	// TODO (lasha): without a lib
+	else
+	{
+		arch = launchercli::arch::OTHER;
+	}
+
+	UnmapViewOfFile(file_map_view);
+	CloseHandle(file_map);
+	CloseHandle(file_handle);
+
 	return true;
 }
 
@@ -582,7 +656,6 @@ bool run_app_under_dr_semu(
 		spdlog::error(L"Failed to execute virtual_fs_reg. path: {}", dr_run_path);
 		return false;
 	}
-
 
 	return true;
 }

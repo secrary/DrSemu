@@ -51,7 +51,7 @@ int wmain(const int argc, wchar_t** argv)
 	// Dr.Semu changes everything for us except command line
 	change_command_line();
 
-	printf("Command Line changed\n");
+	//printf("Command Line changed\n");
 	const auto wait_handle = OpenEvent(GENERIC_ALL, FALSE, event_name.c_str());
 
 	if (wait_handle == nullptr)

@@ -14,6 +14,7 @@ namespace launchercli
 	{
 		x86_32,
 		x86_64,
+		OTHER
 	};
 
 	// http://www.martinbroadhurst.com/how-to-split-a-string-in-c.html
