@@ -15,19 +15,14 @@ namespace dr_semu::static_info
 			return false;
 		}
 
-		// LIEF uses C++ ex. (problem for DR)
-		// https://github.com/trailofbits/pe-parse/blob/master/dump-pe/main.cpp
-		const auto pe_binary = peparse::ParsePEFromFile(file_path.c_str());
+		const auto pe_binary = pe_parse(file_path.c_str());
 		if (pe_binary == nullptr)
 		{
 			dr_printf("Failed to get a static information\nfile path: %s\n", file_path.c_str());
-			dr_printf("Error: 0x%lx (%s)\nLocation: %s\n", peparse::GetPEErr(), peparse::GetPEErrString().c_str(),
-			          peparse::GetPEErrLoc().c_str());
-			dr_messagebox("Failed to parse a file");
 			return false;
 		}
 
-		if (pe_binary->peHeader.nt.FileHeader.Machine == 0x14c)
+		if (pe_binary->header.machine == 0x14c) // IMAGE_FILE_MACHINE_I386
 		{
 			app_arch = arch::x86_32;
 		}
@@ -36,25 +31,16 @@ namespace dr_semu::static_info
 			app_arch = arch::x86_64;
 		}
 		const auto is_x86 = app_arch == arch::x86_32;
-		const auto pe_optional_header32 = pe_binary->peHeader.nt.OptionalHeader;
-		const auto pe_optional_header64 = pe_binary->peHeader.nt.OptionalHeader64;
 
-		uint64_t entry_point = 0;
-		if (is_x86)
-		{
-			entry_point = pe_optional_header32.AddressOfEntryPoint;
-		}
-		else
-		{
-			entry_point = pe_optional_header64.AddressOfEntryPoint;
-		}
+		uint64_t entry_point = pe_binary->optional_header.addressof_entrypoint;
+
 
 		// CryptAcquireContext crashes DR => use third-party C hashing library
 		const auto file_content = utils::read_file_dr(file_path);
 		const auto file_sha2_ascii = digestpp::sha256().absorb(file_content).hexdigest();
 		const std::wstring file_sha2(file_sha2_ascii.begin(), file_sha2_ascii.end());
-		//dr_printf("SHA-256: %ls\n", file_sha2.c_str());
 
+		
 		const auto report_path = shared_variables::binary_directory + shared_variables::report_directory_name + L"\\" +
 			file_sha2 + L".json";
 		if (fs::exists(report_path, ec))
@@ -62,32 +48,69 @@ namespace dr_semu::static_info
 			return true;
 		}
 		const std::string report_path_string(report_path.begin(), report_path.end());
-
+		
 		/// create json
 		json static_info;
 		static_info["generic"] = {
-			{"is_x86", is_x86},
-			//{"has_signature", pe_binary->has_signature()},
-			//{"has_tls", pe_binary->has_tls()},
-			//{"has_imports", pe_binary->has_imports()},
-			//{"has_exports", pe_binary->has_exports()},
-			//{"has_resources", pe_binary->has_resources()},
-			//{"has_exceptions", pe_binary->has_exceptions()},
-			//{"has_relocations", pe_binary->has_relocations()},
-			//{"has_debug", pe_binary->has_debug()},
-			//{"has_configuration", pe_binary->has_configuration()},
+			{
+				"name",
+				pe_binary->name
+			},
+			{
+				"is_x86",
+				is_x86
+			},
+			{
+				"image_base",
+				pe_binary->optional_header.imagebase
+			},
 		};
 		static_info["dos_header"] = {
 			{
 				"magic",
-				is_x86 ? pe_optional_header32.Magic : pe_optional_header64.Magic
+				pe_binary->optional_header.magic
 			},
 			{
 				"checksum",
-				is_x86 ? pe_optional_header32.CheckSum : pe_optional_header64.Magic
+				pe_binary->optional_header.checksum
 			},
 		};
+		
+		
+		const auto sections = pe_binary->sections;
+		std::vector<std::string> vec_sections{};
+		for(auto index = 0; sections[index] != nullptr; index++)
+		{
+			vec_sections.emplace_back(sections[index]->name);
+		}
+		static_info["sections"] = vec_sections;
 
+		const auto imports = pe_binary->imports;
+		if (imports)
+		{
+			for(auto index = 0; imports[index] != nullptr; index++)
+			{
+				const std::string import_name(imports[index]->name);
+				std::vector<std::string> function_names{};
+
+				if (imports[index]->entries)
+				{
+					for(auto entry_index = 0; imports[index]->entries[entry_index] != nullptr; entry_index++)
+					{
+						if (!imports[index]->entries[entry_index]->is_ordinal)
+						{
+							const std::string imported_function(imports[index]->entries[entry_index]->name);
+							if (!imported_function.empty())
+							{
+								function_names.emplace_back(imported_function);
+							}
+						}
+					}
+				}
+				static_info["imports"][import_name] = function_names;
+			}
+		}
+		
 		const auto out_json_file = dr_open_file(report_path_string.c_str(), DR_FILE_WRITE_OVERWRITE);
 		if (INVALID_FILE == out_json_file)
 		{
@@ -98,6 +121,7 @@ namespace dr_semu::static_info
 		dr_write_file(out_json_file, json_str.data(), json_str.length());
 		dr_close_file(out_json_file);
 
+		pe_binary_destroy(pe_binary);
 		return true;
 	}
 } // namespace dr_semu::static_info

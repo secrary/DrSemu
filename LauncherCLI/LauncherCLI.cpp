@@ -1,7 +1,5 @@
 #define NOMINMAX
 
-// if not before Windows.h => fails
-#include <parser-library/parse.h>
 
 #include <Windows.h>
 #include <filesystem>
@@ -474,7 +472,7 @@ int main(int argc, char* argv[])
 
 	std::vector<std::thread> threads{};
 	size_t vm_index = 1;
-	for (const auto current_application : target_directory_files)
+	for (const auto& current_application : target_directory_files)
 	{
 		threads.emplace_back(vm_thread_function, current_application, vm_index);
 		vm_index++;
@@ -491,23 +489,14 @@ int main(int argc, char* argv[])
 bool get_arch(const std::wstring& file_path, launchercli::arch& arch)
 {
 	const std::string file_path_ascii(file_path.begin(), file_path.end());
-	const auto pe_binary = peparse::ParsePEFromFile(file_path_ascii.c_str());
-	if (pe_binary == nullptr)
-	{
-		spdlog::critical(L"peparse::ParsePEFromFile failed. file path: {}", file_path);
-		return false;
-	}
+	arch = launchercli::arch::x86_32;
 
-	if (pe_binary->peHeader.nt.FileHeader.Machine == 0x14c)
-	{
-		arch = launchercli::arch::x86_32;
-	}
-	else
+	// temp
+	if (file_path.find(L"explorer64") != std::wstring::npos)
 	{
 		arch = launchercli::arch::x86_64;
 	}
-	DestructParsedPE(pe_binary);
-
+	// TODO (lasha): without a lib
 	return true;
 }
 

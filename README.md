@@ -64,10 +64,7 @@ Example: https://gist.github.com/secrary/e16daf698d466136229dc417d7dbcfa3
 
 * Download `DynamoRIO` and extract into `bin` folder and rename to [`dynamorio`](https://github.com/DynamoRIO/dynamorio/releases)
 
-* Build [`pe-parser-library.lib`](https://github.com/trailofbits/pe-parse) library:
-  - Generate VS project from `DrSemu\shared_libs\pe_parse` using [cmake-gui](https://cmake.org/download/)
-  - Build 32-bit library under `build` (`\shared_libs\pe_parse\build\pe-parser-library\Release\`) and 64-bit one under `build64`
-  - Change run-time library option to `Multi-threaded` (`/MT`)
+* Download [LIEF-0.9.0-win32.zip](https://lief-project.github.io/packages/sdk/LIEF-0.9.0-win32.zip) and [LIEF-0.9.0-win64.zip](https://lief-project.github.io/packages/sdk/LIEF-0.9.0-win64.zip) and extract into `shared_lib` directory.
 
 * Set `LauncherCLI` As StartUp Project
 

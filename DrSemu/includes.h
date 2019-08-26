@@ -18,8 +18,6 @@
 #pragma warning(disable : 4189) // local variable is initialized but not referenced
 #pragma warning(disable : 4996) // concurrent_unordered_set.h error
 
-// if not before .windows.h => fails
-#include <parser-library/parse.h>
 
 #define PHNT_VERSION PHNT_THRESHOLD // Windows 10
 #include <phnt_windows.h>
@@ -46,6 +44,9 @@ using namespace concurrency;
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
+
+#pragma warning(disable : 4146)
+#include <LIEF/LIEF.h>
 
 #include "../virtual_FS_REG/shared_config.h"
 

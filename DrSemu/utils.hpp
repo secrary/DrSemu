@@ -280,6 +280,8 @@ namespace dr_semu::utils
 		const std::shared_ptr<char> file_content{new char[file_size]{}};
 
 		const size_t read_bytes = dr_read_file(file_handle, file_content.get(), file_size);
+		dr_close_file(file_handle);
+		
 		if (read_bytes != file_size)
 		{
 			return {};

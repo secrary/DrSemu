@@ -148,16 +148,16 @@ namespace launchercli
 		return true;
 	}
 
-	inline bool is_administrator_required(std::wstring_view application_name)
+	inline bool is_administrator_required(const std::wstring_view application_name)
 	{
-		using CheckElevation_func = DWORD(LPCWSTR, PDWORD, HANDLE, PDWORD, PDWORD);
+		using check_elevation_func = DWORD(LPCWSTR, PDWORD, HANDLE, PDWORD, PDWORD);
 
-		const auto CheckElevation = reinterpret_cast<CheckElevation_func*>(GetProcAddress(
+		const auto check_elevation = reinterpret_cast<check_elevation_func*>(GetProcAddress(
 			LoadLibrary(L"kernel32.dll"), "CheckElevation"));
 
 		DWORD run_level;
 		DWORD flags;
-		if (CheckElevation(application_name.data(), &flags, nullptr, &run_level, nullptr) != 0U)
+		if (check_elevation(application_name.data(), &flags, nullptr, &run_level, nullptr) != 0U)
 		{
 			// application path is invalid
 			return false;
