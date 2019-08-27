@@ -1,36 +1,35 @@
-#include <Windows.h>
-#include <cstdio>
-#include <memory>
+#pragma once
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
 #include <vector>
 #include <string>
 #include <fstream>
-#include <iostream>
 
 #include <filesystem>
+#include "../LauncherCLI/utils.hpp"
 namespace fs = std::filesystem;
 
-std::vector<std::string> get_lines_from_file(const std::string& file_path)
+#define PY_SSIZE_T_CLEAN
+#include "Python.h"
+
+inline std::vector<std::string> get_lines_from_file(const std::string& file_path)
 {
 	std::ifstream file(file_path);
-    std::string line;
+	std::string line;
 	std::vector<std::string> lines{};
-    while (std::getline(file, line))
-    {
-    	if (!line.empty())
+	while (std::getline(file, line))
+	{
+		if (!line.empty())
 			lines.emplace_back(line);
-    }
+	}
 	return lines;
 }
 
-std::string python_verdict(const fs::path& rules_directory)
+inline std::string python_rules_verdict(const fs::path& rules_directory, const std::string& reports_directory)
 {
 	const char function_name[] = "check";
-	
+
 	Py_Initialize();
-	
+
 	// fill from a py_imports.config file
 	auto names = get_lines_from_file(rules_directory.string() + R"(\py_imports.config)");
 
@@ -48,12 +47,12 @@ std::string python_verdict(const fs::path& rules_directory)
 	}
 
 	std::string verdict = "NO DETECTIONS";
-	
+
 	PySys_SetPath(rules_directory.wstring().c_str());
 
-	for(auto& path: fs::directory_iterator(rules_directory))
+	for (auto& path : fs::directory_iterator(rules_directory))
 	{
-        auto file_name = path.path().filename().string();
+		auto file_name = path.path().filename().string();
 		if (file_name.ends_with(".py"))
 		{
 			file_name = path.path().filename().replace_extension("").string();
@@ -68,7 +67,7 @@ std::string python_verdict(const fs::path& rules_directory)
 				if (ptr_python_function && PyCallable_Check(ptr_python_function))
 				{
 					const auto ptr_arguments = PyTuple_New(1);
-					const auto string_argument = PyBytes_FromString(rules_directory.string().c_str()); // reports dir TODO change
+					const auto string_argument = PyBytes_FromString(reports_directory.c_str());
 					PyTuple_SetItem(ptr_arguments, 0, string_argument);
 
 					const auto call_result = PyObject_CallObject(ptr_python_function, ptr_arguments);
@@ -90,7 +89,7 @@ std::string python_verdict(const fs::path& rules_directory)
 						Py_DECREF(ptr_python_function);
 						Py_DECREF(ptr_module);
 						PyErr_Print();
-						fprintf(stderr, "Call failed\n");
+						//fprintf(stderr, "Call failed\n");
 						return {};
 					}
 				}
@@ -98,7 +97,7 @@ std::string python_verdict(const fs::path& rules_directory)
 				{
 					if (PyErr_Occurred())
 						PyErr_Print();
-					fprintf(stderr, "Cannot find function \"%s\"\n", function_name);
+					//fprintf(stderr, "Cannot find function \"%s\"\n", function_name);
 				}
 				Py_XDECREF(ptr_python_function);
 				Py_DECREF(ptr_module);
@@ -106,36 +105,25 @@ std::string python_verdict(const fs::path& rules_directory)
 			else
 			{
 				PyErr_Print();
-				fprintf(stderr, "Failed to load \"%ls\\%s\"\n", rules_directory.c_str(), file_name.c_str());
+				//fprintf(stderr, "Failed to load \"%ls\\%s\"\n", rules_directory.c_str(), file_name.c_str());
 				return {};
 			}
-				
+
 		}
 	}
-	
+
 
 
 	for (auto python_loaded_module : python_loaded_modules)
 	{
 		Py_DECREF(python_loaded_module);
 	}
-	
+
 	if (Py_FinalizeEx() < 0)
 	{
 		return {};
 	}
 
 	return verdict;
-}
 
-int
-main(int argc, char* argv[])
-{
-
-	const TCHAR rules_directory[] = LR"(C:\Users\win_p\source\repos\secrary\DrSemu\bin\dr_rules)";
-	const auto verdict = python_verdict(rules_directory);
-
-
-	
-	return 0;
 }

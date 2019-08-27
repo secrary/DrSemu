@@ -84,7 +84,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IncludePath>$(ProjectDir)..\shared_libs\spdlog\include;$(SolutionDir)run_detections\external\lua535_x64\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(USERPROFILE)\AppData\Local\Programs\Python\Python37\include;$(ProjectDir)..\shared_libs\spdlog\include;$(SolutionDir)run_detections\external\lua535_x64\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -157,7 +157,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)run_detections\external\lua535_x64</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(USERPROFILE)\AppData\Local\Programs\Python\Python37\libs;$(SolutionDir)run_detections\external\lua535_x64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -166,6 +166,7 @@
   <ItemGroup>
     <ClInclude Include="includes.h" />
     <ClInclude Include="lua_detection.hpp" />
+    <ClInclude Include="python_detection.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="sample_rule.lua" />

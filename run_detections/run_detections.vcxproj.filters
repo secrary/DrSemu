@@ -29,6 +29,9 @@
     <ClInclude Include="lua_detection.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="python_detection.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="sample_rule.lua">

@@ -1,6 +1,7 @@
 #include "includes.h"
 
 #include "lua_detection.hpp"
+#include "python_detection.hpp"
 #include "../DrSemu/shared.hpp"
 
 std::wstring get_current_location()
@@ -63,17 +64,17 @@ int wmain(int argc, wchar_t** argv)
 		}
 	}
 	// iterate rules
-	fs::path lua_rules{current_location + L"lua_rules"};
-	if (!exists(lua_rules))
+	fs::path rules_directory{current_location + L"dr_rules"};
+	if (!exists(rules_directory))
 	{
-		create_directory(lua_rules);
-		printf("lua_rules directory is empty: %ls\n", lua_rules.wstring().c_str());
+		create_directory(rules_directory);
+		printf("lua_rules directory is empty: %ls\n", rules_directory.wstring().c_str());
 		const auto slot_result = report_slot.write_slot(dr_semu::shared::constants::SUCCEED);
 		return 0;
 	}
 
 	std::string verdict_string{};
-	for (auto& lua_script : fs::directory_iterator(lua_rules))
+	for (auto& lua_script : fs::directory_iterator(rules_directory))
 	{
 		if (lua_script.path().extension() == L".lua")
 		{
@@ -84,13 +85,20 @@ int wmain(int argc, wchar_t** argv)
 			}
 		}
 	}
+	
+	// Python
+	if (verdict_string.empty() || verdict_string == "CLEAN")
+	{
+		verdict_string = python_rules_verdict(rules_directory.string(), report_directory_ascii);
+	}
+
 	if (verdict_string.empty())
 	{
 		verdict_string = "NO DETECTIONS";
 	}
-	const auto verdict_wide = std::wstring(verdict_string.begin(), verdict_string.end());
-	const auto slot_result = report_slot.write_slot(verdict_wide);
 
+	auto verdict_wide = std::wstring(verdict_string.begin(), verdict_string.end());
+	const auto slot_result = report_slot.write_slot(verdict_wide);
 
 	return 0;
 }
