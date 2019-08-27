@@ -27,7 +27,8 @@ namespace dr_semu::objects::handlers
 
 		//dr_printf("[NtQueryObject] info_class: %d\n", object_information_class);
 
-		const auto return_status = NtQueryObject(handle, object_information_class, ptr_out_object_information, length, ptr_out_opt_length);
+		const auto return_status = NtQueryObject(handle, object_information_class, ptr_out_object_information, length,
+		                                         ptr_out_opt_length);
 		const auto is_success = NT_SUCCESS(return_status);
 
 		//ObjectNameInformation
@@ -38,12 +39,13 @@ namespace dr_semu::objects::handlers
 				const auto ptr_name_information = static_cast<POBJECT_NAME_INFORMATION>(ptr_out_object_information);
 				std::wstring name_string;
 				utils::unicode_string_to_wstring(&ptr_name_information->Name, name_string);
-				
+
 				// \Device\HarddiskVolumeX\Users\XXX\AppData\Local\Temp\dr_semu_1\folder\test_file.temp => \Device\HarddiskVolumeX\folder\test_file.temp
 				filesystem::helpers::virtual_to_original_hard_disk_volume(name_string);
 				memset(ptr_name_information->Name.Buffer, 0, ptr_name_information->Name.Length);
 				const auto name_size = name_string.length() * sizeof(TCHAR);
-				memcpy_s(ptr_name_information->Name.Buffer, ptr_name_information->Name.MaximumLength, name_string.c_str(), name_size);
+				memcpy_s(ptr_name_information->Name.Buffer, ptr_name_information->Name.MaximumLength,
+				         name_string.c_str(), name_size);
 				ptr_name_information->Name.Length = name_size;
 				ptr_name_information->Name.MaximumLength = name_size + sizeof(TCHAR);
 			}

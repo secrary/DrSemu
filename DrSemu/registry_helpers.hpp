@@ -78,7 +78,7 @@ namespace dr_semu::registry::helpers
 		if (machine_pos == 0)
 		{
 			const auto virtual_machine_path = virtual_handle_path.substr(
-				wcslen(LR"(\REGISTRY\MACHINE\)"), virtual_handle_path.length());
+				wcslen(LR"(\REGISTRY\MACHINE\)"), std::wstring::npos);
 			dr_printf("u: %ls\n", virtual_machine_path.c_str());
 			const auto status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, virtual_machine_path.c_str(), 0, desired_access,
 			                                 &virtual_reg_handle);
@@ -92,7 +92,7 @@ namespace dr_semu::registry::helpers
 		else if (user_pos == 0)
 		{
 			const auto virtual_user_path = virtual_handle_path.substr(wcslen(LR"(\REGISTRY\USER\)"),
-			                                                          virtual_handle_path.length());
+			                                                          std::wstring::npos);
 
 			const auto status = RegOpenKeyEx(HKEY_USERS, virtual_user_path.c_str(), 0, desired_access,
 			                                 &virtual_reg_handle);
@@ -185,12 +185,12 @@ namespace dr_semu::registry::helpers
 			const auto user_string = LR"(\REGISTRY\USER\)";
 			if (utils::starts_with_case_insensitive(original_reg_path, hklm_string))
 			{
-				const auto end_part = virtual_reg_path.substr(wcslen(hklm_string), virtual_reg_path.length());
+				const auto end_part = virtual_reg_path.substr(wcslen(hklm_string), std::wstring::npos);
 				virtual_reg_path = hklm_string + shared_variables::current_vm_name + L"!" + end_part;
 			}
 			else if (utils::starts_with_case_insensitive(original_reg_path, user_string))
 			{
-				const auto end_part = virtual_reg_path.substr(wcslen(user_string), virtual_reg_path.length());
+				const auto end_part = virtual_reg_path.substr(wcslen(user_string), std::wstring::npos);
 				virtual_reg_path = user_string + shared_variables::current_vm_name + L"!" + end_part;
 			}
 			else
@@ -747,7 +747,7 @@ namespace dr_semu::registry::helpers
 			}
 			auto full_path = handle_path + object_name_string;
 			full_path = redirect_registry_full_path_wow64_reg(full_path);
-			object_name_string = full_path.substr(handle_path.length(), full_path.length());
+			object_name_string = full_path.substr(handle_path.length(), std::wstring::npos);
 		}
 
 		const auto unicode_string = new UNICODE_STRING{};

@@ -35,7 +35,7 @@ void sleep_and_die(void* limit)
 {
 	const auto time_limit = reinterpret_cast<DWORD>(limit);
 	dr_sleep(time_limit SECONDS);
-	
+
 	dr_exit_process(0);
 }
 
@@ -143,7 +143,7 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 	droption_t<std::string> main_mailslot_name_option(DROPTION_SCOPE_CLIENT, "main_slot", "", "main mailslot",
 	                                                  "main mailslot name");
 	droption_t<unsigned int> time_limit_option(DROPTION_SCOPE_CLIENT, "limit", 0, "limit",
-	                                        "target application will die after _TIME_LIMIT_");
+	                                           "target application will die after _TIME_LIMIT_");
 
 	dr_semu::networking::config::disable_internet = false;
 
@@ -173,7 +173,7 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 	dr_semu::shared_variables::report_directory_name = std::wstring(report_directory_name_string.begin(),
 	                                                                report_directory_name_string.end());
 	const auto time_limit = time_limit_option.get_value();
-	
+
 	//dr_printf("Explorer ID: %d\nmain: %ls\nbin_dir: %ls\nreport: %ls\n",
 	//          dr_semu::shared_variables::dumb_explorer_pid,
 	//          dr_semu::shared_variables::main_launcher_slot_name.c_str(),
@@ -277,7 +277,7 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 	}
 
 	dr_semu::shared_variables::initial_time = std::chrono::high_resolution_clock::now();
-	
+
 	//dr_printf("dr_main_end\n");
 }
 
@@ -342,11 +342,12 @@ static void
 event_exit()
 {
 	const auto end_time = std::chrono::high_resolution_clock::now();
-	const auto duration = std::chrono::duration_cast<std::chrono::seconds>(end_time - dr_semu::shared_variables::initial_time).count();
+	const auto duration = std::chrono::duration_cast<std::chrono::seconds>(
+		end_time - dr_semu::shared_variables::initial_time).count();
 
 	dr_printf("[event_exit] PID: %d\tDuration: %d seconds\n", dr_get_process_id(), duration);
 
-	
+
 	drmgr_unregister_module_load_event(module_load_event);
 	if (!drmgr_unregister_pre_syscall_event(event_pre_syscall) || !drmgr_unregister_post_syscall_event(
 		event_post_syscall))

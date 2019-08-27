@@ -87,19 +87,19 @@ namespace dr_semu::process::handlers
 		//		_In_ BOOLEAN TestAlert
 		//	);
 
-//		const auto ptr_context_record = PCONTEXT(dr_syscall_get_param(drcontext, 0));
-//		//const auto test_alert = BOOLEAN(dr_syscall_get_param(drcontext, 1));
-//
-//		if (ptr_context_record != nullptr)
-//		{
-//#ifdef _WIN64
-//		const auto ip = ptr_context_record->Rip;
-//#else
-//			const auto ip = ptr_context_record->Eip;
-//#endif // WIN32
-//
-//			//dr_printf("[NtContinue] EIP: 0x%lx\n", ip);
-//		}
+		//		const auto ptr_context_record = PCONTEXT(dr_syscall_get_param(drcontext, 0));
+		//		//const auto test_alert = BOOLEAN(dr_syscall_get_param(drcontext, 1));
+		//
+		//		if (ptr_context_record != nullptr)
+		//		{
+		//#ifdef _WIN64
+		//		const auto ip = ptr_context_record->Rip;
+		//#else
+		//			const auto ip = ptr_context_record->Eip;
+		//#endif // WIN32
+		//
+		//			//dr_printf("[NtContinue] EIP: 0x%lx\n", ip);
+		//		}
 
 		return SYSCALL_CONTINUE;
 	}
@@ -195,7 +195,7 @@ namespace dr_semu::process::handlers
 			//#define SEM_NOGPFAULTERRORBOX       0x0002
 			//#define SEM_NOALIGNMENTFAULTEXCEPT  0x0004
 			//#define SEM_NOOPENFILEERRORBOX      0x8000
-			
+
 			//const auto ptr_error_mode = static_cast<PULONG>(ptr_out_process_information);
 			//dr_printf("error_mode: 0x%lx\n", *ptr_error_mode);
 		}

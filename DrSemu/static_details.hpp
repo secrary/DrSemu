@@ -40,7 +40,7 @@ namespace dr_semu::static_info
 		const auto file_sha2_ascii = digestpp::sha256().absorb(file_content).hexdigest();
 		const std::wstring file_sha2(file_sha2_ascii.begin(), file_sha2_ascii.end());
 
-		
+
 		const auto report_path = shared_variables::binary_directory + shared_variables::report_directory_name + L"\\" +
 			file_sha2 + L".json";
 		if (fs::exists(report_path, ec))
@@ -48,7 +48,7 @@ namespace dr_semu::static_info
 			return true;
 		}
 		const std::string report_path_string(report_path.begin(), report_path.end());
-		
+
 		/// create json
 		json static_info;
 		static_info["generic"] = {
@@ -75,11 +75,11 @@ namespace dr_semu::static_info
 				pe_binary->optional_header.checksum
 			},
 		};
-		
-		
+
+
 		const auto sections = pe_binary->sections;
 		std::vector<std::string> vec_sections{};
-		for(auto index = 0; sections[index] != nullptr; index++)
+		for (auto index = 0; sections[index] != nullptr; index++)
 		{
 			vec_sections.emplace_back(sections[index]->name);
 		}
@@ -88,14 +88,14 @@ namespace dr_semu::static_info
 		const auto imports = pe_binary->imports;
 		if (imports)
 		{
-			for(auto index = 0; imports[index] != nullptr; index++)
+			for (auto index = 0; imports[index] != nullptr; index++)
 			{
 				const std::string import_name(imports[index]->name);
 				std::vector<std::string> function_names{};
 
 				if (imports[index]->entries)
 				{
-					for(auto entry_index = 0; imports[index]->entries[entry_index] != nullptr; entry_index++)
+					for (auto entry_index = 0; imports[index]->entries[entry_index] != nullptr; entry_index++)
 					{
 						if (!imports[index]->entries[entry_index]->is_ordinal)
 						{
@@ -110,7 +110,7 @@ namespace dr_semu::static_info
 				static_info["imports"][import_name] = function_names;
 			}
 		}
-		
+
 		const auto out_json_file = dr_open_file(report_path_string.c_str(), DR_FILE_WRITE_OVERWRITE);
 		if (INVALID_FILE == out_json_file)
 		{

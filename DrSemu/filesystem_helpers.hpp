@@ -65,14 +65,14 @@ namespace dr_semu::filesystem::helpers
 		{
 			// If the function fails because lpszFilePath is too small to hold the string plus the terminating null character, the return value is the required buffer size, in TCHARs. 
 			// This value includes the size of the terminating null character.
-			const std::shared_ptr<wchar_t> handle_path{ new wchar_t[number_of_wchar] };
+			const std::shared_ptr<wchar_t> handle_path{new wchar_t[number_of_wchar]};
 			memset(handle_path.get(), 0, number_of_wchar * sizeof(wchar_t));
 
 			number_of_wchar = GetFinalPathNameByHandle(handle, handle_path.get(), number_of_wchar, path_type);
 
 			if (number_of_wchar != 0U)
 			{
-				const std::wstring dos_file_name{ handle_path.get(), number_of_wchar };
+				const std::wstring dos_file_name{handle_path.get(), number_of_wchar};
 				return dos_file_name;
 			}
 		}
@@ -751,7 +751,8 @@ namespace dr_semu::filesystem::helpers
 		const auto vm_name_index = utils::find_case_insensitive(file_path, shared_variables::current_vm_name);
 		if (vm_name_index != std::wstring::npos)
 		{
-			file_path = file_path.substr(vm_name_index + shared_variables::current_vm_name.length(), std::wstring::npos);
+			file_path = file_path.substr(vm_name_index + shared_variables::current_vm_name.length(),
+			                             std::wstring::npos);
 		}
 
 		return true;
@@ -772,8 +773,7 @@ namespace dr_semu::filesystem::helpers
 		{
 			hard_disk_path.replace(loc, virtual_fs_path.length(), L"");
 		}
-		
+
 		return true;
 	}
-	
 } // namespace dr_semu::filesystem::helpers

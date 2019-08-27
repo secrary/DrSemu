@@ -614,7 +614,7 @@ namespace dr_semu::filesystem::handlers
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
 			return SYSCALL_SKIP;
 		}
-		
+
 		HANDLE virtual_handle{};
 		auto access_denied = false;
 		const auto is_virtual_handle = helpers::get_virtual_handle_fs(handle, virtual_handle, access_denied);
@@ -628,12 +628,12 @@ namespace dr_semu::filesystem::handlers
 		const std::string file_path_ascii(file_path.begin(), file_path.end());
 
 		//dr_printf("[NtQueryInformationFile] file_path: %ls\ninfo_class: %d\n", file_path.c_str(), file_information_class);
-		
+
 		const auto return_status = NtQueryInformationFile(is_virtual_handle ? virtual_handle : handle,
 		                                                  ptr_io_status_block, ptr_file_information, length,
 		                                                  file_information_class);
 		const auto is_success = NT_SUCCESS(return_status);
-		
+
 		json query_file_info;
 		query_file_info["NtQueryInformationFile"]["before"] = {
 			{"handle", reinterpret_cast<DWORD>(handle)},
@@ -647,24 +647,24 @@ namespace dr_semu::filesystem::handlers
 		{
 			if (file_information_class == FileNameInformation ||
 				file_information_class == FileNormalizedNameInformation
-				)
+			)
 			{
 				const auto ptr_name_information = static_cast<PFILE_NAME_INFORMATION>(ptr_file_information);
 				// FileName: The name string is not null-terminated.
 				// FileNameLength: unsigned integer that specifies the length, in bytes, of the file name contained within the FileName field.
-				std::wstring file_name(ptr_name_information->FileName, ptr_name_information->FileNameLength / sizeof(TCHAR));
-				
+				std::wstring file_name(ptr_name_information->FileName,
+				                       ptr_name_information->FileNameLength / sizeof(TCHAR));
+
 				// filename looks like:  \Users\XXX\AppData (without x:)
 				// \path\to\dr_semu_x\Users\x => \Users\x
 				helpers::file_name_info_redirect(file_name);
 				memset(ptr_name_information->FileName, 0, ptr_name_information->FileNameLength);
 				ptr_name_information->FileNameLength = file_name.length() * sizeof(TCHAR);
-				ptr_io_status_block->Information = ptr_name_information->FileNameLength + sizeof(ptr_name_information->FileNameLength);
+				ptr_io_status_block->Information = ptr_name_information->FileNameLength + 
+					sizeof(ptr_name_information->FileNameLength);
 				memcpy_s(ptr_name_information->FileName, ptr_name_information->FileNameLength, file_name.c_str(),
 				         file_name.length() * sizeof(TCHAR));
 			}
-			
-
 		}
 
 		if (is_virtual_handle)
@@ -822,7 +822,7 @@ namespace dr_semu::filesystem::handlers
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
 			return SYSCALL_SKIP;
 		}
-		
+
 		OBJECT_ATTRIBUTES virtual_object_attributes{};
 		auto is_virtual_handle = false;
 		auto is_new_unicode = false;
@@ -839,15 +839,16 @@ namespace dr_semu::filesystem::handlers
 
 		/// trace syscall
 		std::string full_path_ascii{};
-		const auto full_path_wide = helpers::normalize_path(helpers::get_original_full_path(virtual_object_attributes.RootDirectory,
-		                                                            virtual_object_attributes.ObjectName));
+		const auto full_path_wide = helpers::normalize_path(helpers::get_original_full_path(
+			virtual_object_attributes.RootDirectory,
+			virtual_object_attributes.ObjectName));
 		full_path_ascii = std::string(full_path_wide.begin(), full_path_wide.end());
 
 
 		const auto return_status = NtOpenFile(ptr_out_handle, desired_access, &virtual_object_attributes,
 		                                      ptr_io_status_block, share_access, open_options);
 		const auto is_success = NT_SUCCESS(return_status);
-		
+
 		if (is_virtual_handle && (virtual_object_attributes.RootDirectory != nullptr))
 		{
 			NtClose(virtual_object_attributes.RootDirectory);
@@ -866,7 +867,7 @@ namespace dr_semu::filesystem::handlers
 		};
 		open_file_json["NtOpenFile"]["success"] = is_success;
 		shared_variables::json_concurrent_vector.push_back(open_file_json);
-		
+
 		//dr_printf("name: %ls\nbefore: %ls\nroot: 0x%lx\nret: 0x%x\n", object_name_wide.c_str(), virtual_object_attributes.ObjectName->Buffer, virtual_object_attributes.RootDirectory, return_status);
 
 		dr_syscall_set_result(drcontext, return_status);
@@ -911,7 +912,7 @@ namespace dr_semu::filesystem::handlers
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
 			return SYSCALL_SKIP;
 		}
-		
+
 		const auto file_path_original = helpers::get_full_path(ptr_object_attributes);
 		if (file_path_original.find(LR"(\dr_semu_)") != std::wstring::npos)
 		{
@@ -919,7 +920,7 @@ namespace dr_semu::filesystem::handlers
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
 			return SYSCALL_SKIP;
 		}
-		
+
 
 		const auto tid = dr_get_thread_id(drcontext);
 
@@ -938,7 +939,7 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		auto virtual_path = helpers::get_full_path(virtual_object_attributes.RootDirectory,
-		                                                 virtual_object_attributes.ObjectName->Buffer);
+		                                           virtual_object_attributes.ObjectName->Buffer);
 		if (utils::find_case_insensitive(virtual_path, LR"(C:\)") != std::wstring::npos &&
 			utils::find_case_insensitive(
 				virtual_path, shared_variables::virtual_filesystem_path) == std::wstring::npos)
@@ -1005,7 +1006,7 @@ namespace dr_semu::filesystem::handlers
 			NtClose(virtual_object_attributes.RootDirectory);
 		}
 
-	
+
 		dr_syscall_set_result(drcontext, return_status);
 		return SYSCALL_SKIP;
 	}

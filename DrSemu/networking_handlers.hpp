@@ -1,7 +1,6 @@
 #pragma once
 
 #include "includes.h"
-//#include "wininet.h"
 
 namespace dr_semu::networking::config
 {
@@ -50,9 +49,8 @@ namespace dr_semu::networking::handlers
 				shared_variables::json_concurrent_vector.push_back(open_url);
 			}
 		}
-			
 	}
-	
+
 	inline void pro_InternetOpenUrlA(void* wrapcxt, void** user_data)
 	{
 		//INTERNETAPI_(HINTERNET) InternetOpenUrlA(
@@ -77,7 +75,6 @@ namespace dr_semu::networking::handlers
 				shared_variables::json_concurrent_vector.push_back(open_url);
 			}
 		}
-
 	}
 
 	inline void pro_gethostbyname(void* wrapcxt, void** user_data)
@@ -98,7 +95,7 @@ namespace dr_semu::networking::handlers
 	{
 		// STDAPI URLDownloadToFileW(_In_opt_ LPUNKNOWN, _In_ LPCWSTR,_In_opt_ LPCWSTR,DWORD, _In_opt_ LPBINDSTATUSCALLBACK);      
 
-		constexpr auto args_size = sizeof(LPUNKNOWN) + sizeof(LPCWSTR) + sizeof(LPCWSTR) + sizeof(DWORD) + 
+		constexpr auto args_size = sizeof(LPUNKNOWN) + sizeof(LPCWSTR) + sizeof(LPCWSTR) + sizeof(DWORD) +
 			sizeof(LPBINDSTATUSCALLBACK);
 
 		const auto url = static_cast<LPCWSTR>(drwrap_get_arg(wrapcxt, 1));

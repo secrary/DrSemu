@@ -105,6 +105,7 @@ namespace dr_semu
 	{
 		x86_32,
 		x86_64,
+		other
 	};
 
 	inline const std::wstring os_path_separator = LR"(\)";
@@ -281,7 +282,7 @@ namespace dr_semu::utils
 
 		const size_t read_bytes = dr_read_file(file_handle, file_content.get(), file_size);
 		dr_close_file(file_handle);
-		
+
 		if (read_bytes != file_size)
 		{
 			return {};

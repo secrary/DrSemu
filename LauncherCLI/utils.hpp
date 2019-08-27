@@ -14,7 +14,7 @@ namespace launchercli
 	{
 		x86_32,
 		x86_64,
-		OTHER
+		other
 	};
 
 	// http://www.martinbroadhurst.com/how-to-split-a-string-in-c.html
@@ -28,12 +28,12 @@ namespace launchercli
 		          std::back_inserter(container));
 	}
 
-	std::wstring get_true_random_string(const size_t size)
+	inline std::wstring get_true_random_string(const size_t size)
 	{
 		/// https://www.fluentcpp.com/2019/05/24/how-to-fill-a-cpp-collection-with-random-values/
 		const auto random_numbers = [](int low, int high)
 		{
-			auto random_function = [distribution_ = std::uniform_int_distribution<int>(low, high),
+			const auto random_function = [distribution_ = std::uniform_int_distribution<int>(low, high),
 					random_engine_ = std::mt19937{std::random_device{}()}]() mutable
 			{
 				return distribution_(random_engine_);
@@ -43,8 +43,8 @@ namespace launchercli
 
 		static const TCHAR alphabet[] =
 			L"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-			L"abcdefghijklmnopqrstuvwxyz";
-		L"0123456789";
+			L"abcdefghijklmnopqrstuvwxyz"
+			L"0123456789";
 
 		std::vector<int> indexes{};
 		std::generate_n(std::back_inserter(indexes), size, random_numbers(0, wcslen(alphabet) - 1));
