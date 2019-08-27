@@ -230,7 +230,7 @@ namespace dr_semu::utils
 		return data.find(to_search, pos);
 	}
 
-	inline size_t starts_with_case_insensitive(std::wstring target_string, std::wstring search_string)
+	inline bool starts_with_case_insensitive(std::wstring target_string, std::wstring search_string)
 	{
 		std::transform(target_string.begin(), target_string.end(), target_string.begin(), tolower);
 		std::transform(search_string.begin(), search_string.end(), search_string.begin(), tolower);
@@ -238,7 +238,7 @@ namespace dr_semu::utils
 		return target_string.starts_with(search_string);
 	}
 
-	inline size_t equals_case_insensitive(std::wstring target_string, std::wstring search_string)
+	inline bool equals_case_insensitive(std::wstring target_string, std::wstring search_string)
 	{
 		std::transform(target_string.begin(), target_string.end(), target_string.begin(), tolower);
 		std::transform(search_string.begin(), search_string.end(), search_string.begin(), tolower);
