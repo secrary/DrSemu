@@ -423,7 +423,7 @@ event_pre_syscall(void* drcontext, int sysnum)
 		const auto syscall_name = dr_semu::syscall::syscall_numbers[sysnum];
 		//dr_printf("sys_name [%d]: %s\n", dr_get_thread_id(drcontext), syscall_name.c_str()); 
 
-		//return SYSCALL_CONTINUE;
+		//return SYSCALL_RESULT::CONTINUE;
 		if (syscall_name == NTWRITEFILE)
 		{
 			return dr_semu::filesystem::handlers::NtWriteFile_handler(drcontext);
@@ -732,7 +732,7 @@ event_pre_syscall(void* drcontext, int sysnum)
 			return dr_semu::objects::handlers::NtQueryObject_handler(drcontext);
 		}
 
-		return dr_semu::SYSCALL_CONTINUE;
+		return dr_semu::SYSCALL_RESULT::CONTINUE;
 	}
 
 	return true; /* execute normally */

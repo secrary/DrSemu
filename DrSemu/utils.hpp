@@ -95,10 +95,10 @@ constexpr auto ntqueryobject = "NtQueryObject";
 
 namespace dr_semu
 {
-	enum
+	enum SYSCALL_RESULT : bool
 	{
-		SYSCALL_SKIP,
-		SYSCALL_CONTINUE
+		SKIP = false,
+		CONTINUE  = true
 	};
 
 	enum class arch

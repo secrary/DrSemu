@@ -17,7 +17,7 @@ namespace dr_semu::filesystem::handlers
 		//		_Out_ PIO_STATUS_BLOCK IoStatusBlock
 		//	);
 
-		return SYSCALL_CONTINUE;
+		return SYSCALL_RESULT::CONTINUE;
 
 		const auto file_handle = HANDLE(dr_syscall_get_param(drcontext, 0)); // FileHandle
 		const auto ptr_out_io_status_block = PIO_STATUS_BLOCK(dr_syscall_get_param(drcontext, 1)); // IoStatusBlock
@@ -25,7 +25,7 @@ namespace dr_semu::filesystem::handlers
 		if ((file_handle == nullptr) || (ptr_out_io_status_block == nullptr))
 		{
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		HANDLE virtual_handle = nullptr;
@@ -34,7 +34,7 @@ namespace dr_semu::filesystem::handlers
 		if (access_denied)
 		{
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		const auto return_status = NtFlushBuffersFile(is_virtual_handle ? virtual_handle : file_handle,
@@ -46,7 +46,7 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	inline bool NtCreateSymbolicLinkObject_handler(void* drcontext)
@@ -85,7 +85,7 @@ namespace dr_semu::filesystem::handlers
 
 		dr_messagebox("[NtCreateSymbolicLinkObject] check parameters and implement the function");
 
-		return SYSCALL_CONTINUE;
+		return SYSCALL_RESULT::CONTINUE;
 	}
 
 	inline bool NtQueryDirectoryFileEx_handler(void* drcontext)
@@ -120,7 +120,7 @@ namespace dr_semu::filesystem::handlers
 		if (access_denied)
 		{
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		// TODO(win_p): TEMP fix, wait for phnt update
@@ -138,7 +138,7 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 
@@ -180,7 +180,7 @@ namespace dr_semu::filesystem::handlers
 		if (access_denied)
 		{
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		const auto return_status = NtQueryDirectoryFile(is_virtual_handle ? virtual_handle : file_handle, event_handle,
@@ -202,7 +202,7 @@ namespace dr_semu::filesystem::handlers
 			NtClose(virtual_handle);
 		}
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	inline bool NtQueryFullAttributesFile_handler(void* drcontext)
@@ -222,7 +222,7 @@ namespace dr_semu::filesystem::handlers
 		if (nullptr == ptr_object_attributes)
 		{
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		OBJECT_ATTRIBUTES virtual_object_attributes{};
@@ -233,7 +233,7 @@ namespace dr_semu::filesystem::handlers
 		if (!is_virtual_attributes)
 		{
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		const auto return_status = NtQueryFullAttributesFile(&virtual_object_attributes,
@@ -263,7 +263,7 @@ namespace dr_semu::filesystem::handlers
 			delete virtual_object_attributes.ObjectName;
 		}
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	inline bool NtCreateIoCompletion_handler(void* drcontext)
@@ -293,7 +293,7 @@ namespace dr_semu::filesystem::handlers
 			if (!is_obj_attr)
 			{
 				dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-				return SYSCALL_SKIP;
+				return SYSCALL_RESULT::SKIP;
 			}
 
 			const auto return_status = NtCreateIoCompletion(ptr_handle, desired_access, &virtual_object_attributes,
@@ -309,10 +309,10 @@ namespace dr_semu::filesystem::handlers
 			}
 
 			dr_syscall_set_result(drcontext, return_status);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
-		return SYSCALL_CONTINUE;
+		return SYSCALL_RESULT::CONTINUE;
 	}
 
 	/* https://www.geoffchappell.com/studies/windows/km/ntoskrnl/api/mm/modwrite/create.htm */
@@ -320,7 +320,7 @@ namespace dr_semu::filesystem::handlers
 	inline bool NtCreatePagingFile_handler(void* drcontext)
 	{
 		dr_syscall_set_result(drcontext, STATUS_PRIVILEGE_NOT_HELD);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	/* The NtCreateDirectoryObject routine creates or opens a directory object. */
@@ -343,7 +343,7 @@ namespace dr_semu::filesystem::handlers
 		{
 			*ptr_handle = nullptr;
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		OBJECT_ATTRIBUTES virtual_object_attributes{};
@@ -354,7 +354,7 @@ namespace dr_semu::filesystem::handlers
 		if (!is_valid)
 		{
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		const auto return_status = NtCreateDirectoryObject(ptr_handle, desired_access, &virtual_object_attributes);
@@ -369,7 +369,7 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	inline bool NtDeleteFile_handler(void* drcontext)
@@ -391,7 +391,7 @@ namespace dr_semu::filesystem::handlers
 		if (!is_virtual_attributes)
 		{
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		const auto return_status = NtDeleteFile(&virtual_object_attributes);
@@ -406,7 +406,7 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	inline bool NtQueryAttributesFile_hook(void* drcontext)
@@ -426,7 +426,7 @@ namespace dr_semu::filesystem::handlers
 		if (ptr_object_attributes == nullptr || ptr_object_attributes->ObjectName == nullptr)
 		{
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		OBJECT_ATTRIBUTES virtual_object_attributes{};
@@ -438,7 +438,7 @@ namespace dr_semu::filesystem::handlers
 		if (!is_valid)
 		{
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		const auto return_status = NtQueryAttributesFile(&virtual_object_attributes, ptr_file_information);
@@ -453,7 +453,7 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	inline bool NtSetInformationFile_hook(void* drcontext)
@@ -483,7 +483,7 @@ namespace dr_semu::filesystem::handlers
 		if (access_denied)
 		{
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		bool is_unnamed{};
@@ -513,7 +513,7 @@ namespace dr_semu::filesystem::handlers
 				if (access_denied)
 				{
 					dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-					return SYSCALL_SKIP;
+					return SYSCALL_RESULT::SKIP;
 				}
 			}
 			else
@@ -523,7 +523,7 @@ namespace dr_semu::filesystem::handlers
 				if (!is_valid)
 				{
 					dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-					return SYSCALL_SKIP;
+					return SYSCALL_RESULT::SKIP;
 				}
 				path_size_in_bytes = target_virtual_path.length() * sizeof(WCHAR);
 				length = path_size_in_bytes + sizeof(FILE_RENAME_INFORMATION);
@@ -572,7 +572,7 @@ namespace dr_semu::filesystem::handlers
 				NtClose(virtual_file_rename_handle);
 			}
 			dr_syscall_set_result(drcontext, return_status);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		const auto return_status = NtSetInformationFile(
@@ -587,7 +587,7 @@ namespace dr_semu::filesystem::handlers
 			NtClose(virtual_handle);
 		}
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	inline bool NtQueryInformationFile_hook(void* drcontext)
@@ -612,7 +612,7 @@ namespace dr_semu::filesystem::handlers
 		if (handle == INVALID_HANDLE_VALUE)
 		{
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		HANDLE virtual_handle{};
@@ -621,7 +621,7 @@ namespace dr_semu::filesystem::handlers
 		if (access_denied)
 		{
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		const auto file_path = helpers::normalize_path(helpers::get_path_from_handle(handle));
@@ -673,7 +673,7 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	inline bool NtMapViewOfSection_hook(void* drcontext)
@@ -700,7 +700,7 @@ namespace dr_semu::filesystem::handlers
 		//dr_printf("section: 0x%x process:: 0x%lx\n", section_handle, process_handle);
 		//dr_messagebox("X");
 
-		return SYSCALL_CONTINUE;
+		return SYSCALL_RESULT::CONTINUE;
 	}
 
 	inline bool NtCreateSection_handler(void* drcontext)
@@ -739,7 +739,7 @@ namespace dr_semu::filesystem::handlers
 			if (!is_virtual_attr_valid)
 			{
 				dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-				return SYSCALL_SKIP;
+				return SYSCALL_RESULT::SKIP;
 			}
 		}
 
@@ -753,7 +753,7 @@ namespace dr_semu::filesystem::handlers
 			if (access_denied)
 			{
 				dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-				return SYSCALL_SKIP;
+				return SYSCALL_RESULT::SKIP;
 			}
 		}
 
@@ -779,7 +779,7 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	inline bool NtOpenFile_handler(void* drcontext)
@@ -806,13 +806,13 @@ namespace dr_semu::filesystem::handlers
 		if (ptr_out_handle == nullptr)
 		{
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 		if (ptr_object_attributes == nullptr || ptr_object_attributes->ObjectName == nullptr)
 		{
 			*ptr_out_handle = nullptr;
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		const auto file_path_original = helpers::get_full_path(ptr_object_attributes);
@@ -820,7 +820,7 @@ namespace dr_semu::filesystem::handlers
 		{
 			*ptr_out_handle = nullptr;
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		OBJECT_ATTRIBUTES virtual_object_attributes{};
@@ -834,7 +834,7 @@ namespace dr_semu::filesystem::handlers
 			dr_printf("[NtOpenFile] denied: root_handle: 0x%lx obj_name: %ls\n", ptr_object_attributes->RootDirectory,
 			          ptr_object_attributes->ObjectName->Buffer);
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		/// trace syscall
@@ -871,7 +871,7 @@ namespace dr_semu::filesystem::handlers
 		//dr_printf("name: %ls\nbefore: %ls\nroot: 0x%lx\nret: 0x%x\n", object_name_wide.c_str(), virtual_object_attributes.ObjectName->Buffer, virtual_object_attributes.RootDirectory, return_status);
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	inline bool NtCreateFile_handler(void* drcontext)
@@ -910,7 +910,7 @@ namespace dr_semu::filesystem::handlers
 		{
 			*ptr_handle = nullptr;
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		const auto file_path_original = helpers::get_full_path(ptr_object_attributes);
@@ -918,7 +918,7 @@ namespace dr_semu::filesystem::handlers
 		{
 			*ptr_handle = nullptr;
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 
@@ -935,7 +935,7 @@ namespace dr_semu::filesystem::handlers
 			dr_printf("[NtCreateFile] denied: root_handle: 0x%lx obj_name: %ls\n", ptr_object_attributes->RootDirectory,
 			          ptr_object_attributes->ObjectName->Buffer);
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 
 		auto virtual_path = helpers::get_full_path(virtual_object_attributes.RootDirectory,
@@ -1008,7 +1008,7 @@ namespace dr_semu::filesystem::handlers
 
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	inline bool NtWriteFile_handler(void* drcontext)
@@ -1044,7 +1044,7 @@ namespace dr_semu::filesystem::handlers
 		if (access_denied)
 		{
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_SKIP;
+			return SYSCALL_RESULT::SKIP;
 		}
 		const auto current_handle = is_virtual_handle ? virtual_handle : handle;
 
@@ -1070,7 +1070,7 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_SKIP;
+		return SYSCALL_RESULT::SKIP;
 	}
 
 	inline bool NtClose_handler(void* drcontext)
@@ -1086,6 +1086,6 @@ namespace dr_semu::filesystem::handlers
 
 		// no need to check
 
-		return SYSCALL_CONTINUE;
+		return SYSCALL_RESULT::CONTINUE;
 	}
 } // namespace dr_semu::filesystem::handlers
