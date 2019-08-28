@@ -15,14 +15,16 @@ namespace dr_semu::static_info
 			return false;
 		}
 
-		const auto pe_binary = pe_parse(file_path.c_str());
+		const auto pe_binary = peparse::ParsePEFromFile(file_path.c_str());
 		if (pe_binary == nullptr)
 		{
 			dr_printf("Failed to get a static information\nfile path: %s\n", file_path.c_str());
+			dr_printf("Error: 0x%lx (%s)\nLocation: %s\n", peparse::GetPEErr(), peparse::GetPEErrString().c_str(),
+				peparse::GetPEErrLoc().c_str());
 			return false;
 		}
 
-		if (pe_binary->header.machine == 0x14c) // IMAGE_FILE_MACHINE_I386
+		if (pe_binary->peHeader.nt.FileHeader.Machine == 0x14c) // IMAGE_FILE_MACHINE_I386
 		{
 			app_arch = arch::x86_32;
 		}
@@ -32,8 +34,18 @@ namespace dr_semu::static_info
 		}
 		const auto is_x86 = app_arch == arch::x86_32;
 
-		uint64_t entry_point = pe_binary->optional_header.addressof_entrypoint;
+		const auto pe_optional_header32 = pe_binary->peHeader.nt.OptionalHeader;
+		const auto pe_optional_header64 = pe_binary->peHeader.nt.OptionalHeader64;
 
+		uint64_t entry_point = 0;
+		if (is_x86)
+		{
+			entry_point = pe_optional_header32.AddressOfEntryPoint;
+		}
+		else
+		{
+			entry_point = pe_optional_header64.AddressOfEntryPoint;
+		}
 
 		// CryptAcquireContext crashes DR => use third-party C hashing library
 		const auto file_content = utils::read_file_dr(file_path);
@@ -45,6 +57,7 @@ namespace dr_semu::static_info
 			file_sha2 + L".json";
 		if (fs::exists(report_path, ec))
 		{
+			peparse::DestructParsedPE(pe_binary);
 			return true;
 		}
 		const std::string report_path_string(report_path.begin(), report_path.end());
@@ -53,75 +66,44 @@ namespace dr_semu::static_info
 		json static_info;
 		static_info["generic"] = {
 			{
-				"name",
-				pe_binary->name
-			},
-			{
 				"is_x86",
 				is_x86
 			},
 			{
 				"image_base",
-				pe_binary->optional_header.imagebase
+				is_x86 ? pe_binary->peHeader.nt.OptionalHeader.ImageBase : pe_binary->peHeader.nt.OptionalHeader64.ImageBase
 			},
 		};
 		static_info["dos_header"] = {
 			{
 				"magic",
-				pe_binary->optional_header.magic
+				is_x86 ? pe_binary->peHeader.nt.OptionalHeader.Magic : pe_binary->peHeader.nt.OptionalHeader64.Magic
 			},
 			{
 				"checksum",
-				pe_binary->optional_header.checksum
+				is_x86 ? pe_binary->peHeader.nt.OptionalHeader.CheckSum : pe_binary->peHeader.nt.OptionalHeader64.CheckSum
 			},
 		};
 
 
-		const auto sections = pe_binary->sections;
+		
 		std::vector<std::string> vec_sections{};
-		for (auto index = 0; sections[index] != nullptr; index++)
-		{
-			vec_sections.emplace_back(sections[index]->name);
-		}
-		static_info["sections"] = vec_sections;
+		//static_info["sections"] = vec_sections;
 
-		const auto imports = pe_binary->imports;
-		if (imports)
-		{
-			for (auto index = 0; imports[index] != nullptr; index++)
-			{
-				const std::string import_name(imports[index]->name);
-				std::vector<std::string> function_names{};
-
-				if (imports[index]->entries)
-				{
-					for (auto entry_index = 0; imports[index]->entries[entry_index] != nullptr; entry_index++)
-					{
-						if (!imports[index]->entries[entry_index]->is_ordinal)
-						{
-							const std::string imported_function(imports[index]->entries[entry_index]->name);
-							if (!imported_function.empty())
-							{
-								function_names.emplace_back(imported_function);
-							}
-						}
-					}
-				}
-				static_info["imports"][import_name] = function_names;
-			}
-		}
 
 		const auto out_json_file = dr_open_file(report_path_string.c_str(), DR_FILE_WRITE_OVERWRITE);
 		if (INVALID_FILE == out_json_file)
 		{
 			dr_printf("[get_static_info_and_arch] failed to open json file: %s\n", report_path_string.c_str());
+			peparse::DestructParsedPE(pe_binary);
 			return false;
 		}
 		const auto json_str = static_info.dump();
 		dr_write_file(out_json_file, json_str.data(), json_str.length());
 		dr_close_file(out_json_file);
 
-		pe_binary_destroy(pe_binary);
+		peparse::DestructParsedPE(pe_binary);
+
 		return true;
 	}
 } // namespace dr_semu::static_info

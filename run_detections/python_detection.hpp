@@ -58,7 +58,7 @@ inline std::string python_rules_verdict(const fs::path& rules_directory, const s
 	for (auto& path : fs::directory_iterator(rules_directory))
 	{
 		auto file_name = path.path().filename().string();
-		if (file_name.ends_with(".py"))
+		if (file_name.ends_with(".py") && file_name != "dr_semu_utils.py")
 		{
 			file_name = path.path().filename().replace_extension("").string();
 			const auto python_rule_file = PyUnicode_DecodeFSDefault(file_name.c_str());
@@ -81,37 +81,29 @@ inline std::string python_rules_verdict(const fs::path& rules_directory, const s
 					{
 						const auto result_char_string = PyBytes_AsString(call_result);
 						verdict = std::string(result_char_string);
+						Py_DECREF(call_result);
 						if (!verdict.empty() && verdict != "CLEAN")
 						{
-							Py_XDECREF(ptr_python_function);
+							Py_DECREF(ptr_python_function);
 							Py_DECREF(ptr_module);
-							return verdict;
+							break;
 						}
-						Py_DECREF(call_result);
 					}
 					else
 					{
-						Py_DECREF(ptr_python_function);
-						Py_DECREF(ptr_module);
 						PyErr_Print();
-						//fprintf(stderr, "Call failed\n");
-						return {};
 					}
 				}
 				else
 				{
-					if (PyErr_Occurred())
-						PyErr_Print();
-					//fprintf(stderr, "Cannot find function \"%s\"\n", function_name);
+					PyErr_Print();
 				}
-				Py_XDECREF(ptr_python_function);
+				Py_DECREF(ptr_python_function);
 				Py_DECREF(ptr_module);
 			}
 			else
 			{
 				PyErr_Print();
-				//fprintf(stderr, "Failed to load \"%ls\\%s\"\n", rules_directory.c_str(), file_name.c_str());
-				return {};
 			}
 		}
 	}
@@ -122,10 +114,7 @@ inline std::string python_rules_verdict(const fs::path& rules_directory, const s
 		Py_DECREF(python_loaded_module);
 	}
 
-	if (Py_FinalizeEx() < 0)
-	{
-		return {};
-	}
+	Py_FinalizeEx();
 
 	return verdict;
 }
