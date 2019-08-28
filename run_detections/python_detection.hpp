@@ -31,7 +31,12 @@ inline std::string python_rules_verdict(const fs::path& rules_directory, const s
 	Py_Initialize();
 
 	// fill from a py_imports.config file
-	auto names = get_lines_from_file(rules_directory.string() + R"(\py_imports.config)");
+	const auto imports_file = rules_directory.string() + R"(\py_imports.config)";
+	std::vector<std::string> names{};
+	if (fs::exists(imports_file))
+	{
+		names = get_lines_from_file(imports_file);
+	}
 
 	// import modules
 	std::vector<PyObject*> python_loaded_modules{};
@@ -108,10 +113,8 @@ inline std::string python_rules_verdict(const fs::path& rules_directory, const s
 				//fprintf(stderr, "Failed to load \"%ls\\%s\"\n", rules_directory.c_str(), file_name.c_str());
 				return {};
 			}
-
 		}
 	}
-
 
 
 	for (auto python_loaded_module : python_loaded_modules)
@@ -125,5 +128,4 @@ inline std::string python_rules_verdict(const fs::path& rules_directory, const s
 	}
 
 	return verdict;
-
 }
