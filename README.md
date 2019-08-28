@@ -30,9 +30,10 @@ After terminating the process, based on `Dr.Semu` rules we receive if the execut
 
 ### Dr.Semu rules
 
-They are written in `LUA` and use dynamic information from the interception and static information about the sample. It's trivial to add support of other languages.
+They are written in `Python` or `LUA` (located under `dr_rules`) and use dynamic information from the interception and static information about the sample. It's trivial to add support of other languages.
 
-Example: https://gist.github.com/secrary/e16daf698d466136229dc417d7dbcfa3
+Example (`Python`): https://gist.github.com/secrary/ac89321b8a7bde998a6e3139be49eb72
+Example (`Lua`): https://gist.github.com/secrary/e16daf698d466136229dc417d7dbcfa3
 
 ### Usage
 
@@ -64,7 +65,10 @@ Example: https://gist.github.com/secrary/e16daf698d466136229dc417d7dbcfa3
 
 * Download `DynamoRIO` and extract into `bin` folder and rename to [`dynamorio`](https://github.com/DynamoRIO/dynamorio/releases)
 
-* Download [LIEF-0.9.0-win32.zip](https://lief-project.github.io/packages/sdk/LIEF-0.9.0-win32.zip) and [LIEF-0.9.0-win64.zip](https://lief-project.github.io/packages/sdk/LIEF-0.9.0-win64.zip) and extract into `shared_lib` directory.
+* Build [`pe-parser-library.lib`](https://github.com/trailofbits/pe-parse) library:
+  - Generate VS project from `DrSemu\shared_libs\pe_parse` using [cmake-gui](https://cmake.org/download/)
+  - Build 32-bit library under `build` (`\shared_libs\pe_parse\build\pe-parser-library\Release\`) and 64-bit one under `build64`
+  - Change run-time library option to `Multi-threaded` (`/MT`)
 
 * Set `LauncherCLI` As StartUp Project
 
