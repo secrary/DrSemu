@@ -2,7 +2,7 @@
 
 `Dr.Semu` runs executables in an isolated environment, monitors the behavior of a process, and based on `Dr.Semu` rules created by you or the community, detects if the process is malicious or not.
 
-![drsemu](https://user-images.githubusercontent.com/16405698/63102891-837e2900-bf6b-11e9-8fb3-13f371ff44f7.png)
+![drsemu_lua](https://user-images.githubusercontent.com/16405698/63102891-837e2900-bf6b-11e9-8fb3-13f371ff44f7.png)
 
 
 **[The tool is in the early development stage]**
@@ -32,7 +32,10 @@ After terminating the process, based on `Dr.Semu` rules we receive if the execut
 
 They are written in `Python` or `LUA` (located under `dr_rules`) and use dynamic information from the interception and static information about the sample. It's trivial to add support of other languages.
 
+![drsemu_rule_python](https://user-images.githubusercontent.com/16405698/63897515-156f4280-c9fe-11e9-863e-499ede7a04b9.png)
+
 Example (`Python`): https://gist.github.com/secrary/ac89321b8a7bde998a6e3139be49eb72
+
 Example (`Lua`): https://gist.github.com/secrary/e16daf698d466136229dc417d7dbcfa3
 
 ### Usage
@@ -45,6 +48,7 @@ Example (`Lua`): https://gist.github.com/secrary/e16daf698d466136229dc417d7dbcfa
 
 - Download `DynamoRIO` and extract into `DrSemu` folder and rename to [`dynamorio`](https://github.com/DynamoRIO/dynamorio/releases)
 
+- Install [Python 3 x64](https://www.python.org/downloads/release/python-372/)
 
 `DrSemu.exe --target file_path`
 
@@ -62,6 +66,7 @@ Example (`Lua`): https://gist.github.com/secrary/e16daf698d466136229dc417d7dbcfa
 
 ![powershell](https://user-images.githubusercontent.com/16405698/63098792-35fdbe00-bf63-11e9-8dec-0ae08c43fca1.PNG)
 
+* Install [Python 3 x64](https://www.python.org/downloads/release/python-372/)
 
 * Download `DynamoRIO` and extract into `bin` folder and rename to [`dynamorio`](https://github.com/DynamoRIO/dynamorio/releases)
 
