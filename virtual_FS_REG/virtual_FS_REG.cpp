@@ -57,9 +57,12 @@ void generate_security_descriptor_for_files()
 
 	virtual_fs::fs_descriptor.ptr_sd = ptr_fs;
 
-	if (0 == GetFileSecurity(sd_file_path.c_str(), requested_information,
+	const auto result = GetFileSecurity(sd_file_path.c_str(), requested_information,
 	                         virtual_fs::fs_descriptor.ptr_sd.get(),
-	                         virtual_fs::fs_descriptor.len, &virtual_fs::fs_descriptor.len))
+	                         virtual_fs::fs_descriptor.len, &virtual_fs::fs_descriptor.len);
+	fs::remove(sd_file_path);
+	
+	if (0 == result)
 	{
 		const auto last_err = GetLastError();
 		printf("ProjFS: GetFileSecurity failed, err: %lu\nPath: %ls\n\n", last_err, sd_file_path.c_str());

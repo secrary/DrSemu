@@ -222,11 +222,13 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 		dr_free_module_data(target_module);
 	}
 
+#ifndef DR_TESTING
 	if (time_limit != 0)
 	{
 		// set timer
 		dr_create_client_thread(sleep_and_die, reinterpret_cast<PVOID>(time_limit));
 	}
+#endif // !DR_TESTING
 
 	// Assume that a host OS is 64-bit
 	dr_semu::shared_variables::current_app_arch = dr_is_wow64() ? dr_semu::arch::x86_32 : dr_semu::arch::x86_64;
@@ -400,7 +402,7 @@ event_exit()
 	*/
 	if (dr_semu::shared_variables::are_children)
 	{
-		dr_sleep(5 SECONDS);
+		dr_sleep(2 SECONDS);
 	}
 
 	/// end_command to a launcher
@@ -421,7 +423,7 @@ event_pre_syscall(void* drcontext, int sysnum)
 	if (dr_semu::syscall::syscall_numbers.find(sysnum) != dr_semu::syscall::syscall_numbers.end())
 	{
 		const auto syscall_name = dr_semu::syscall::syscall_numbers[sysnum];
-		//dr_printf("sys_name [%d]: %s\n", dr_get_thread_id(drcontext), syscall_name.c_str()); 
+		//dr_printf("[TID: %d]: %s\n", dr_get_thread_id(drcontext), syscall_name.c_str()); 
 
 		//return SYSCALL_RESULT::CONTINUE;
 		if (syscall_name == NTWRITEFILE)

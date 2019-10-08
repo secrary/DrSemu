@@ -18,6 +18,7 @@
 #include <digestpp.hpp>
 
 #include "../DrSemu/shared.hpp"
+#include "../virtual_FS_REG/shared_config.h"
 
 
 const std::wstring virtual_fs_reg = L"virtual_FS_REG.exe";
@@ -129,14 +130,16 @@ int main(int argc, char* argv[])
 	spdlog::flush_every(std::chrono::seconds(3));
 	spdlog::info("LauncherCLI for Dr.Semu");
 
-	/// UNCOMMENT FOR TESTING !!!
-	//target_application =
-	//	// x64
-	//	//LR"(C:\windows\system32\cmd.exe)";
-	//	// x86
-	//	LR"(C:\Windows\SysWOW64\cmd.exe)";
-	//
-	//target_arguments = LR"()";
+#ifdef DR_TESTING
+	target_application =
+		// x64
+		//LR"(C:\windows\system32\cmd.exe)";
+		// x86
+		LR"(C:\Windows\SysWOW64\notepad.exe)";
+	
+	target_arguments = LR"()";
+#endif
+
 
 	const auto binaries_location = get_current_location();
 	if (!SetCurrentDirectory(binaries_location.c_str()))
@@ -505,8 +508,8 @@ bool get_arch(const std::wstring& file_path, launchercli::arch& arch)
 	LARGE_INTEGER size{};
 	GetFileSizeEx(file_handle, &size);
 
-	SYSTEM_INFO sysInfo{};
-	GetSystemInfo(&sysInfo);
+	SYSTEM_INFO sys_info{};
+	GetSystemInfo(&sys_info);
 
 	const auto file_map = CreateFileMapping(file_handle,
 	                                        nullptr,
@@ -525,7 +528,7 @@ bool get_arch(const std::wstring& file_path, launchercli::arch& arch)
 	                                   FILE_MAP_READ,
 	                                   0,
 	                                   0,
-	                                   sysInfo.dwPageSize);
+	                                   sys_info.dwPageSize);
 
 	if (file_map_view == nullptr)
 	{
@@ -538,12 +541,12 @@ bool get_arch(const std::wstring& file_path, launchercli::arch& arch)
 		static_cast<PBYTE>(file_map_view) + sizeof(IMAGE_DOS_HEADER) - sizeof(DWORD));
 	UnmapViewOfFile(file_map_view);
 
-	const auto nt_map_address = (e_lfanew / sysInfo.dwAllocationGranularity) * sysInfo.dwAllocationGranularity;
+	const auto nt_map_address = (e_lfanew / sys_info.dwAllocationGranularity) * sys_info.dwAllocationGranularity;
 	file_map_view = MapViewOfFile(file_map,
 	                              FILE_MAP_READ,
 	                              0,
 	                              nt_map_address,
-	                              sysInfo.dwPageSize);
+	                              sys_info.dwPageSize);
 
 	if (file_map_view == nullptr)
 	{
