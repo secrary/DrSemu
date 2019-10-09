@@ -135,6 +135,8 @@ namespace dr_semu::system::handlers
 		                                                    information_length, ptr_out_opt_length);
 		const auto is_success = NT_SUCCESS(return_status) ? true : false;
 
+		//dr_printf("[NtQuerySystemInformation] class: %d\n", information_class);
+		
 		/// trace 
 		std::string information_class_trace = "UNKNOWN";
 		if (information_class == SystemProcessInformation)

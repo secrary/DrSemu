@@ -818,9 +818,20 @@ namespace dr_semu::filesystem::handlers
 		const auto file_path_original = helpers::get_full_path(ptr_object_attributes);
 		if (file_path_original.find(LR"(\dr_semu_)") != std::wstring::npos)
 		{
-			*ptr_out_handle = nullptr;
-			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_RESULT::SKIP;
+			if (file_path_original.length() >= dr_semu::shared_variables::virtual_filesystem_path.wstring().length() + 4)
+			{
+				const auto vfs_part = file_path_original.substr(4);
+				// if its from other vm_x
+				if (!utils::starts_with_case_insensitive(vfs_part, dr_semu::shared_variables::virtual_filesystem_path.wstring()))
+				{
+					dr_printf("[NtOpenFile] Denied to open \"dr_semu_\" path\n%ls\n", file_path_original.c_str());
+					if (ptr_object_attributes->RootDirectory)
+						dr_printf("folder handle: 0x%x\n", ptr_object_attributes->RootDirectory);
+					*ptr_out_handle = nullptr;
+					dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
+					return SYSCALL_RESULT::SKIP;
+				}
+			}
 		}
 
 		OBJECT_ATTRIBUTES virtual_object_attributes{};
@@ -914,11 +925,29 @@ namespace dr_semu::filesystem::handlers
 		}
 
 		const auto file_path_original = helpers::get_full_path(ptr_object_attributes);
+		// if a client have a handle to vFS folder and creates a file under the folder
+		// example: (cmd.exe) cd folder_x; mkdir a;
+		// cd folder_x - creates a handle to vFS path
+		// mkdir a -> NtCreateFile(folder_x_handle, new_folder_name) - folder_x_handle is from vFS
 		if (file_path_original.find(LR"(\dr_semu_)") != std::wstring::npos)
 		{
-			*ptr_handle = nullptr;
-			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_RESULT::SKIP;
+			if (file_path_original.length() >= dr_semu::shared_variables::virtual_filesystem_path.wstring().length() + 4)
+			{
+				// TODO(Lasha): deny open a vm_x (current) dir
+				// same for NtOpenFile
+
+				const auto vfs_part = file_path_original.substr(4);
+				// if its from other vm_i
+				if (!utils::starts_with_case_insensitive(vfs_part, dr_semu::shared_variables::virtual_filesystem_path.wstring()))
+				{
+					dr_printf("[NtCreateFile] ACCESS_DENIED\nPath contains \"dr_semu_\" string:\n%ls\n", file_path_original.c_str());
+					if (ptr_object_attributes->RootDirectory)
+						dr_printf("folder handle: 0x%x\n", ptr_object_attributes->RootDirectory);
+					*ptr_handle = nullptr;
+					dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
+					return SYSCALL_RESULT::SKIP;
+				}
+			}
 		}
 
 
@@ -1006,7 +1035,7 @@ namespace dr_semu::filesystem::handlers
 			NtClose(virtual_object_attributes.RootDirectory);
 		}
 
-
+		//dr_printf("status: 0x%x\n", return_status);
 		dr_syscall_set_result(drcontext, return_status);
 		return SYSCALL_RESULT::SKIP;
 	}

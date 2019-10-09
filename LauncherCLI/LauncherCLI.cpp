@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 		// x64
 		//LR"(C:\windows\system32\cmd.exe)";
 		// x86
-		LR"(C:\Windows\SysWOW64\notepad.exe)";
+		LR"(C:\Windows\SysWOW64\cmd.exe)";
 	
 	target_arguments = LR"()";
 #endif

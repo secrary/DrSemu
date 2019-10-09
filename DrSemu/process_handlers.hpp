@@ -161,7 +161,7 @@ namespace dr_semu::process::handlers
 		const auto process_name = handle_name.empty() ? L"<NULL>" : handle_name;
 		const std::string process_name_ascii(process_name.begin(), process_name.end());
 		std::string information_class_trace = "UNKNOWN";
-
+		
 		// TODO (lasha): filter more classes
 		if (process_info_class == ProcessWow64Information)
 		{
@@ -254,7 +254,7 @@ namespace dr_semu::process::handlers
 						ptr_out_process_information)->BasicInfo;
 				}
 
-				// TODO(GREEN_MACHINE): change PPID (Parent Process ID)
+				// TODO(Lasha): change PPID (Parent Process ID)
 				// Parent PID: InheritedFromUniqueProcessId
 				// if target process is fake Explorer change PPID to something (pids are divisible on 4)
 				// https://blogs.technet.microsoft.com/markrussinovich/2009/07/05/pushing-the-limits-of-windows-processes-and-threads/
@@ -672,7 +672,7 @@ namespace dr_semu::process::handlers
 			shared_variables::json_concurrent_vector.push_back(create_user_process);
 
 			dr_printf(
-				"[NtCreateUserProcess] Cross-platform arch execution is not currently supported!\nPath: %s\n",
+				"[NtCreateUserProcess] Cross-architecture execution is not currently supported!\nPath: %s\n",
 				image_path_ascii.c_str());
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
 			return SYSCALL_RESULT::SKIP;
@@ -838,6 +838,7 @@ namespace dr_semu::process::handlers
 
 
 		//const auto process_handle = HANDLE(dr_syscall_get_param(drcontext, 0)); // ProcessHandle
+		//dr_printf("%x\n", process_handle);
 
 		// nothing to hide, maybe some loggings
 		return SYSCALL_RESULT::CONTINUE;

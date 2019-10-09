@@ -129,7 +129,7 @@ dr_client_main(client_id_t id, int argc, const char* argv[])
 
 	dr_register_nudge_event(nudge_event, client_id);
 	drx_register_soft_kills(soft_kill_event);
-
+	
 	/// https://dynamorio.org/docs/page_droption.html
 	droption_t<unsigned int> vm_index_option(DROPTION_SCOPE_CLIENT, "vm", 0, "vm index", "VM index number");
 	droption_t<unsigned int> dumb_pid_option(DROPTION_SCOPE_CLIENT, "pid", 0, "dumb explorer pid",

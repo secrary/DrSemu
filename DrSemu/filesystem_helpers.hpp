@@ -330,8 +330,9 @@ namespace dr_semu::filesystem::helpers
 				virtual_path, shared_variables::virtual_filesystem_path.wstring()) == std::wstring::npos
 		)
 		{
-			dr_printf("[TID: %d] Path should be virtual: %ls\n", tid, virtual_path.c_str());
-			dr_messagebox("investigate path");
+			dr_printf("[TID: %d] (virtual_to_original_fs) Path should be virtual: %ls\n", tid, virtual_path.c_str());
+			dr_printf("*If its the current directory, ignore it\n");
+			//dr_messagebox("investigate path");
 			return {};
 		}
 
