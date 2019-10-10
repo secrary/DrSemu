@@ -210,7 +210,7 @@ namespace dr_semu::utils
 
 	inline bool wstring_to_unicode_string(const std::wstring& source_string, PUNICODE_STRING unicode_string)
 	{
-		const auto length_in_bytes = source_string.length() * sizeof(WCHAR);
+		const USHORT length_in_bytes = source_string.length() * sizeof(WCHAR);
 		unicode_string->Buffer = new WCHAR[source_string.length() + 1];
 		memset(unicode_string->Buffer, 0, length_in_bytes + sizeof(WCHAR));
 

@@ -39,7 +39,7 @@ namespace dr_semu::registry::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtQueryOpenSubKeys_handler(void* drcontext)
@@ -70,7 +70,7 @@ namespace dr_semu::registry::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 
@@ -111,7 +111,7 @@ namespace dr_semu::registry::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_result);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 
@@ -128,7 +128,7 @@ namespace dr_semu::registry::handlers
 		const auto key_handle = HANDLE(dr_syscall_get_param(drcontext, 0)); // KeyHandle
 
 		dr_syscall_set_result(drcontext, STATUS_PRIVILEGE_NOT_HELD);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtLoadKeyEx_handler(void* drcontext)
@@ -158,7 +158,7 @@ namespace dr_semu::registry::handlers
 
 		// The calling process must have the SE_RESTORE_NAME and SE_BACKUP_NAME privileges
 		dr_syscall_set_result(drcontext, STATUS_PRIVILEGE_NOT_HELD);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtLoadKey2_handler(void* drcontext)
@@ -178,7 +178,7 @@ namespace dr_semu::registry::handlers
 
 		// The calling process must have the SE_RESTORE_NAME and SE_BACKUP_NAME privileges
 		dr_syscall_set_result(drcontext, STATUS_PRIVILEGE_NOT_HELD);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtSaveKeyEx_handler(void* drcontext)
@@ -198,7 +198,7 @@ namespace dr_semu::registry::handlers
 
 
 		dr_syscall_set_result(drcontext, STATUS_PRIVILEGE_NOT_HELD); // SE_BACKUP_NAME  is required
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtSaveKey_handler(void* drcontext)
@@ -217,7 +217,7 @@ namespace dr_semu::registry::handlers
 		// since key_handle is a file handle on vFS and not reg_key handle NtSaveKey returns "invalid handle" error
 
 		dr_syscall_set_result(drcontext, STATUS_PRIVILEGE_NOT_HELD); // SE_BACKUP_NAME  is required
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtLoadKey_handler(void* drcontext)
@@ -236,7 +236,7 @@ namespace dr_semu::registry::handlers
 
 		// The calling process must have the SE_RESTORE_NAME and SE_BACKUP_NAME privileges
 		dr_syscall_set_result(drcontext, STATUS_PRIVILEGE_NOT_HELD);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtInitializeRegistry_handler(void* drcontext)
@@ -251,7 +251,7 @@ namespace dr_semu::registry::handlers
 		//const auto boot_condition = USHORT(dr_syscall_get_param(drcontext, 0)); // BootCondition
 
 		dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtFreezeRegistry_handler(void* drcontext)
@@ -266,7 +266,7 @@ namespace dr_semu::registry::handlers
 		const auto time_out_in_seconds = ULONG(dr_syscall_get_param(drcontext, 0)); // TimeOutInSeconds
 
 		dr_syscall_set_result(drcontext, STATUS_SUCCESS);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtFlushKey_handler(void* drcontext)
@@ -292,7 +292,7 @@ namespace dr_semu::registry::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_result);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtOpenKeyTransactedEx_handler(void* drcontext)
@@ -339,7 +339,7 @@ namespace dr_semu::registry::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtOpenKeyTransacted_handler(void* drcontext)
@@ -382,7 +382,7 @@ namespace dr_semu::registry::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtCreateKeyTransacted_handler(void* drcontext)
@@ -437,7 +437,7 @@ namespace dr_semu::registry::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_result);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtCompressKey_handler(void* drcontext)
@@ -464,7 +464,7 @@ namespace dr_semu::registry::handlers
 
 		dr_syscall_set_result(drcontext, STATUS_PRIVILEGE_NOT_HELD); // or STATUS_NOT_IMPLEMENTED
 
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtCompactKeys_handler(void* drcontext)
@@ -481,7 +481,7 @@ namespace dr_semu::registry::handlers
 		const auto ptr_key_array = PHANDLE(dr_syscall_get_param(drcontext, 1)); // KeyArray
 
 		dr_syscall_set_result(drcontext, STATUS_PRIVILEGE_NOT_HELD);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtNotifyChangeMultipleKeys_handler(void* drcontext)
@@ -511,7 +511,7 @@ namespace dr_semu::registry::handlers
 		ptr_io_status_block->Pointer = nullptr;
 
 		dr_syscall_set_result(drcontext, STATUS_PENDING);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtNotifyChangeKey_handler(void* drcontext)
@@ -558,7 +558,7 @@ namespace dr_semu::registry::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtSetValueKey_handler(void* drcontext)
@@ -603,7 +603,7 @@ namespace dr_semu::registry::handlers
 			RegCloseKey(virtual_handle);
 		}
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtEnumerateValueKey_handler(void* drcontext)
@@ -643,7 +643,7 @@ namespace dr_semu::registry::handlers
 		}
 
 		dr_syscall_set_result(drcontext, result_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool enumerate_key_internal(void* drcontext, HANDLE key_handle, const ULONG index,
@@ -752,7 +752,7 @@ namespace dr_semu::registry::handlers
 		shared_variables::json_concurrent_vector.push_back(enumerate_key);
 
 		dr_syscall_set_result(drcontext, result_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtEnumerateKey_handler(void* drcontext)
@@ -882,7 +882,7 @@ namespace dr_semu::registry::handlers
 			RegCloseKey(virtual_handle);
 		}
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtDeleteKey_handler(void* drcontext)
@@ -911,7 +911,7 @@ namespace dr_semu::registry::handlers
 			RegCloseKey(virtual_handle);
 		}
 
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtDeleteValueKey_handler(void* drcontext)
@@ -942,7 +942,7 @@ namespace dr_semu::registry::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtCreateKey_handler(void* drcontext)
@@ -972,7 +972,7 @@ namespace dr_semu::registry::handlers
 		if (ptr_object_attributes == nullptr)
 		{
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
 		const auto key_path_trace = helpers::get_key_path_trace(ptr_object_attributes);
@@ -1012,7 +1012,7 @@ namespace dr_semu::registry::handlers
 		shared_variables::json_concurrent_vector.push_back(reg_create_key);
 
 		dr_syscall_set_result(drcontext, return_result);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool open_key_internal(void* drcontext, const PHANDLE ptr_out_key_handle, ACCESS_MASK desired_access,
@@ -1058,7 +1058,7 @@ namespace dr_semu::registry::handlers
 		//dr_printf("open: %s\nstatus: 0x%lx\n", key_ascii.c_str(), return_status);
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtOpenKeyEx_handler(void* drcontext)

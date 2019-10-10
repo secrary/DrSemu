@@ -57,7 +57,7 @@ namespace dr_semu::static_info
 			file_sha2 + L".json";
 		if (fs::exists(report_path, ec))
 		{
-			peparse::DestructParsedPE(pe_binary);
+			DestructParsedPE(pe_binary);
 			return true;
 		}
 		const std::string report_path_string(report_path.begin(), report_path.end());
@@ -95,14 +95,14 @@ namespace dr_semu::static_info
 		if (INVALID_FILE == out_json_file)
 		{
 			dr_printf("[get_static_info_and_arch] failed to open json file: %s\n", report_path_string.c_str());
-			peparse::DestructParsedPE(pe_binary);
+			DestructParsedPE(pe_binary);
 			return false;
 		}
 		const auto json_str = static_info.dump();
 		dr_write_file(out_json_file, json_str.data(), json_str.length());
 		dr_close_file(out_json_file);
 
-		peparse::DestructParsedPE(pe_binary);
+		DestructParsedPE(pe_binary);
 
 		return true;
 	}

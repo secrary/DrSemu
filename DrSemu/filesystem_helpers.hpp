@@ -777,4 +777,115 @@ namespace dr_semu::filesystem::helpers
 
 		return true;
 	}
+
+	/* ---------------- NtQueryDirectoryFile helper Functions ----------------------------------------*/
+ 
+	inline std::wstring get_dir_file_name
+	(
+		__in const PVOID file_information,
+		__in const FILE_INFORMATION_CLASS file_info_class
+	)
+	{
+		std::wstring result_string{};
+		switch(file_info_class){
+			case FileDirectoryInformation:
+				result_string = std::wstring(PFILE_DIRECTORY_INFORMATION(file_information)->FileName, PFILE_DIRECTORY_INFORMATION(file_information)->FileNameLength / sizeof(TCHAR));
+				break;
+			case FileFullDirectoryInformation:
+				result_string = std::wstring(PFILE_FULL_DIR_INFORMATION(file_information)->FileName, PFILE_FULL_DIR_INFORMATION(file_information)->FileNameLength / sizeof(TCHAR));
+				break;
+			case FileIdFullDirectoryInformation:
+				result_string = std::wstring(PFILE_ID_FULL_DIR_INFORMATION(file_information)->FileName, PFILE_ID_FULL_DIR_INFORMATION(file_information)->FileNameLength / sizeof(TCHAR));
+				break;
+			case FileBothDirectoryInformation:
+				result_string = std::wstring(PFILE_BOTH_DIR_INFORMATION(file_information)->FileName, PFILE_BOTH_DIR_INFORMATION(file_information)->FileNameLength / sizeof(TCHAR));
+				break;
+			case FileIdBothDirectoryInformation:
+				result_string = std::wstring(PFILE_ID_BOTH_DIR_INFORMATION(file_information)->FileName, PFILE_ID_BOTH_DIR_INFORMATION(file_information)->FileNameLength / sizeof(TCHAR));
+				break;
+			case FileNamesInformation:
+				result_string = std::wstring(PFILE_NAMES_INFORMATION(file_information)->FileName, PFILE_NAMES_INFORMATION(file_information)->FileNameLength / sizeof(TCHAR));
+				break;
+			default:
+				result_string = {};
+		}
+		return result_string;
+	}
+ 
+	inline ULONG get_next_entry_offset
+	(
+		__in const PVOID file_information,
+		__in const FILE_INFORMATION_CLASS file_info_class
+	)
+	{
+		ULONG result = 0;
+
+		if (file_information == nullptr)
+		{
+			return result;
+		}
+
+		switch(file_info_class){
+				case FileDirectoryInformation:
+						result = PFILE_DIRECTORY_INFORMATION(file_information)->NextEntryOffset;
+						break;
+				case FileFullDirectoryInformation:
+						result = PFILE_FULL_DIR_INFORMATION(file_information)->NextEntryOffset;
+						break;
+				case FileIdFullDirectoryInformation:
+						result = PFILE_ID_FULL_DIR_INFORMATION(file_information)->NextEntryOffset;
+						break;
+				case FileBothDirectoryInformation:
+						result = PFILE_BOTH_DIR_INFORMATION(file_information)->NextEntryOffset;
+						break;
+				case FileIdBothDirectoryInformation:
+						result = PFILE_ID_BOTH_DIR_INFORMATION(file_information)->NextEntryOffset;
+						break;
+				case FileNamesInformation:
+						result = PFILE_NAMES_INFORMATION(file_information)->NextEntryOffset;
+						break;
+				default:
+						result = 0;
+		}
+		return result;
+	}
+
+		/* Set the value of the  fileInformation's NextEntryOffset */
+	inline void set_next_entry_offset
+	(
+		__in PVOID file_information,
+		__in const FILE_INFORMATION_CLASS file_info_class,
+		__in const ULONG new_value
+	)
+	{
+		if (file_information == nullptr)
+		{
+			return;
+		}
+
+		switch(file_info_class){
+				case FileDirectoryInformation:
+						PFILE_DIRECTORY_INFORMATION(file_information)->NextEntryOffset = new_value;
+						break;
+				case FileFullDirectoryInformation:
+						PFILE_FULL_DIR_INFORMATION(file_information)->NextEntryOffset = new_value;
+						break;
+				case FileIdFullDirectoryInformation:
+						PFILE_ID_FULL_DIR_INFORMATION(file_information)->NextEntryOffset = new_value;
+						break;
+				case FileBothDirectoryInformation:
+						PFILE_BOTH_DIR_INFORMATION(file_information)->NextEntryOffset = new_value;
+						break;
+				case FileIdBothDirectoryInformation:
+						PFILE_ID_BOTH_DIR_INFORMATION(file_information)->NextEntryOffset = new_value;
+						break;
+				case FileNamesInformation:
+						PFILE_NAMES_INFORMATION(file_information)->NextEntryOffset = new_value;
+						break;
+				default: ;
+		}
+	}
+
+	/* ---------------- NtQueryDirectoryFile helper Functions END ----------------------------------------*/
+
 } // namespace dr_semu::filesystem::helpers

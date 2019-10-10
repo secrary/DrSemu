@@ -24,7 +24,7 @@ namespace dr_semu::process::handlers
 		//	dr_printf("[NtSetContextThread] EIP: 0x%lx\n", ptr_thread_context->Eip);
 		//}
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtProtectVirtualMemory_handler(void* drcontext)
@@ -74,7 +74,7 @@ namespace dr_semu::process::handlers
 		shared_variables::json_concurrent_vector.push_back(virtual_protect);
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtContinue_handler(void* drcontext)
@@ -101,7 +101,7 @@ namespace dr_semu::process::handlers
 		//			//dr_printf("[NtContinue] EIP: 0x%lx\n", ip);
 		//		}
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtSetInformationProcess_handler(void* drcontext)
@@ -127,7 +127,7 @@ namespace dr_semu::process::handlers
 		//	//dr_printf("[ProcessDefaultHardErrorMode] error_mode: 0x%x\n", *ptr_error_mode);
 		//}
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtQueryInformationProcess_handler(void* drcontext)
@@ -288,7 +288,7 @@ namespace dr_semu::process::handlers
 
 		shared_variables::json_concurrent_vector.push_back(query_info_process);
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtWriteVirtualMemory_handler(void* drcontext)
@@ -338,7 +338,7 @@ namespace dr_semu::process::handlers
 					          target_process_id);
 					shared_variables::json_concurrent_vector.push_back(write_virtual_memory);
 					dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-					return SYSCALL_RESULT::SKIP;
+					return SKIP;
 				}
 
 				const auto return_status = NtWriteVirtualMemory(target_process_handle, ptr_opt_base_address, buffer,
@@ -348,13 +348,13 @@ namespace dr_semu::process::handlers
 				shared_variables::json_concurrent_vector.push_back(write_virtual_memory);
 
 				dr_syscall_set_result(drcontext, return_status);
-				return SYSCALL_RESULT::SKIP;
+				return SKIP;
 			}
 		}
 
 		//dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
 		//return SYSCALL_RESULT::SKIP;
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtSuspendProcess_handler(void* drcontext)
@@ -385,7 +385,7 @@ namespace dr_semu::process::handlers
 
 		shared_variables::json_concurrent_vector.push_back(suspend_process);
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtCreateProcessEx_handler(void* drcontext)
@@ -408,7 +408,7 @@ namespace dr_semu::process::handlers
 		dr_messagebox("[NtCreateProcessEx] implement it!\n");
 
 		dr_syscall_set_result(drcontext, STATUS_NOT_IMPLEMENTED);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtCreateProcess_handler(void* drcontext)
@@ -430,7 +430,7 @@ namespace dr_semu::process::handlers
 		dr_messagebox("[NtCreateProcess] implement it!\n");
 
 		dr_syscall_set_result(drcontext, STATUS_NOT_IMPLEMENTED);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtDelayExecution_handler(void* drcontext)
@@ -460,7 +460,7 @@ namespace dr_semu::process::handlers
 		}
 
 		//dr_syscall_set_result(drcontext, STATUS_SUCCESS);
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtOpenThread_handler(void* drcontext)
@@ -485,13 +485,13 @@ namespace dr_semu::process::handlers
 		if ((ptr_object_attributes != nullptr) && (ptr_object_attributes->ObjectName != nullptr))
 		{
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
 		if (ptr_object_attributes == nullptr)
 		{
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
 		/// trace syscall
@@ -502,7 +502,7 @@ namespace dr_semu::process::handlers
 			dr_printf("[NtOpenThread] RootDirectory != nullptr: 0x%x\n", ptr_object_attributes->RootDirectory);
 			dr_messagebox("[NtOpenThread] RootDirectory");
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
 		if (ptr_opt_client_id != nullptr)
@@ -527,7 +527,7 @@ namespace dr_semu::process::handlers
 					dr_printf("[NtOpenThread] Accessing forbidden process_id: %d\n", proc_id);
 					shared_variables::json_concurrent_vector.push_back(nt_open_thread);
 					dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-					return SYSCALL_RESULT::SKIP;
+					return SKIP;
 				}
 			}
 		}
@@ -544,7 +544,7 @@ namespace dr_semu::process::handlers
 		shared_variables::json_concurrent_vector.push_back(nt_open_thread);
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtCreateUserProcess_handler(void* drcontext)
@@ -601,7 +601,7 @@ namespace dr_semu::process::handlers
 				{
 					dr_printf("Failed tp convert a path to virtual one\npath: %ls\n", image_path.c_str());
 					dr_syscall_set_result(drcontext, STATUS_OBJECT_NAME_NOT_FOUND);
-					return SYSCALL_RESULT::SKIP;
+					return SKIP;
 				}
 
 				if (!relocated_image_path.empty())
@@ -675,7 +675,7 @@ namespace dr_semu::process::handlers
 				"[NtCreateUserProcess] Cross-architecture execution is not currently supported!\nPath: %s\n",
 				image_path_ascii.c_str());
 			dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
 		helpers::pre_create_process_tid[current_tid] = pre_info;
@@ -686,7 +686,7 @@ namespace dr_semu::process::handlers
 		shared_variables::are_children = true;
 		// SYSCALL_RESULT::CONTINUE => inject child process
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline void NtCreateUserProcess_post_handler(void* drcontext)
@@ -763,7 +763,7 @@ namespace dr_semu::process::handlers
 		if (ptr_object_attributes == nullptr)
 		{
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
 		if (ptr_object_attributes->RootDirectory != nullptr || ptr_object_attributes->ObjectName != nullptr)
@@ -800,7 +800,7 @@ namespace dr_semu::process::handlers
 					//dr_printf("Accessing forbidden process_id: %d\n", access_process_id);
 					shared_variables::json_concurrent_vector.push_back(nt_open_process);
 					dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-					return SYSCALL_RESULT::SKIP;
+					return SKIP;
 				}
 			}
 		}
@@ -819,7 +819,7 @@ namespace dr_semu::process::handlers
 		//shared_variables::json_concurrent_vector.push_back(nt_open_process);
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtQueryVirtualMemory_handler(void* drcontext)
@@ -841,6 +841,6 @@ namespace dr_semu::process::handlers
 		//dr_printf("%x\n", process_handle);
 
 		// nothing to hide, maybe some loggings
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 } // namespace dr_semu::process::handlers

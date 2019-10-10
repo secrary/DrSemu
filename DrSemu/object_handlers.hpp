@@ -43,7 +43,7 @@ namespace dr_semu::objects::handlers
 				// \Device\HarddiskVolumeX\Users\XXX\AppData\Local\Temp\dr_semu_1\folder\test_file.temp => \Device\HarddiskVolumeX\folder\test_file.temp
 				filesystem::helpers::virtual_to_original_hard_disk_volume(name_string);
 				memset(ptr_name_information->Name.Buffer, 0, ptr_name_information->Name.Length);
-				const auto name_size = name_string.length() * sizeof(TCHAR);
+				const USHORT name_size = name_string.length() * sizeof(TCHAR);
 				memcpy_s(ptr_name_information->Name.Buffer, ptr_name_information->Name.MaximumLength,
 				         name_string.c_str(), name_size);
 				ptr_name_information->Name.Length = name_size;
@@ -52,7 +52,7 @@ namespace dr_semu::objects::handlers
 		}
 
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtWaitForSingleObject_handler(void* drcontext)
@@ -70,7 +70,7 @@ namespace dr_semu::objects::handlers
 
 		//dr_printf("[NtWaitForSingleObject] handle: 0x%lx\n", handle);
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtOpenEvent_handler(void* drcontext)
@@ -95,7 +95,7 @@ namespace dr_semu::objects::handlers
 			if (NT_SUCCESS(return_status))
 			{
 				CloseHandle(temporary_handle);
-				return SYSCALL_RESULT::CONTINUE; // nothing to change
+				return CONTINUE; // nothing to change
 			}
 
 			std::wstring original_name{};
@@ -116,10 +116,10 @@ namespace dr_semu::objects::handlers
 
 			shared_variables::json_concurrent_vector.push_back(open_event);
 			dr_syscall_set_result(drcontext, return_status);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtCreateEvent_handler(void* drcontext)
@@ -148,7 +148,7 @@ namespace dr_semu::objects::handlers
 			if (NT_SUCCESS(return_status))
 			{
 				CloseHandle(temporary_handle);
-				return SYSCALL_RESULT::CONTINUE; // nothing to change
+				return CONTINUE; // nothing to change
 			}
 
 			std::wstring original_name{};
@@ -170,10 +170,10 @@ namespace dr_semu::objects::handlers
 			shared_variables::json_concurrent_vector.push_back(create_event);
 
 			dr_syscall_set_result(drcontext, return_status);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtOpenSemaphore_handler(void* drcontext)
@@ -198,7 +198,7 @@ namespace dr_semu::objects::handlers
 			if (NT_SUCCESS(return_status))
 			{
 				CloseHandle(temporary_handle);
-				return SYSCALL_RESULT::CONTINUE; // nothing to change
+				return CONTINUE; // nothing to change
 			}
 
 			std::wstring original_name{};
@@ -219,10 +219,10 @@ namespace dr_semu::objects::handlers
 
 			shared_variables::json_concurrent_vector.push_back(open_semaphore);
 			dr_syscall_set_result(drcontext, return_status);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtCreateSemaphore_handler(void* drcontext)
@@ -253,7 +253,7 @@ namespace dr_semu::objects::handlers
 			if (NT_SUCCESS(return_status))
 			{
 				CloseHandle(temporary_handle);
-				return SYSCALL_RESULT::CONTINUE; // nothing to change
+				return CONTINUE; // nothing to change
 			}
 
 			std::wstring original_name{};
@@ -275,10 +275,10 @@ namespace dr_semu::objects::handlers
 			shared_variables::json_concurrent_vector.push_back(create_semaphore);
 
 			dr_syscall_set_result(drcontext, return_status);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtCreateMailslotFile_handler(void* drcontext)
@@ -309,7 +309,7 @@ namespace dr_semu::objects::handlers
 		if (ptr_opt_object_attributes == nullptr)
 		{
 			dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
 		std::wstring original_name{};
@@ -331,7 +331,7 @@ namespace dr_semu::objects::handlers
 		create_mailslot["NtCreateMailslotFile"]["success"] = is_success;
 
 		shared_variables::json_concurrent_vector.push_back(create_mailslot);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtCreateMutant_handler(void* drcontext)
@@ -361,7 +361,7 @@ namespace dr_semu::objects::handlers
 			if (NT_SUCCESS(return_status))
 			{
 				CloseHandle(temporary_handle);
-				return SYSCALL_RESULT::CONTINUE; // nothing to change
+				return CONTINUE; // nothing to change
 			}
 
 			std::wstring original_name{};
@@ -382,10 +382,10 @@ namespace dr_semu::objects::handlers
 			shared_variables::json_concurrent_vector.push_back(create_mutex);
 
 			dr_syscall_set_result(drcontext, return_status);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtOpenMutant_handler(void* drcontext)
@@ -412,7 +412,7 @@ namespace dr_semu::objects::handlers
 			if (NT_SUCCESS(return_status))
 			{
 				CloseHandle(temporary_handle);
-				return SYSCALL_RESULT::CONTINUE; // nothing to change
+				return CONTINUE; // nothing to change
 			}
 
 
@@ -434,9 +434,9 @@ namespace dr_semu::objects::handlers
 
 			shared_variables::json_concurrent_vector.push_back(open_mutex);
 			dr_syscall_set_result(drcontext, return_status);
-			return SYSCALL_RESULT::SKIP;
+			return SKIP;
 		}
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 } // namespace dr_semu::objects::handlers

@@ -24,7 +24,7 @@ namespace dr_semu::system::handlers
 		dr_printf("options: %d\n", valid_response_options);
 		dr_messagebox("NtRaiseHardError");
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtUserSystemParametersInfo_handler(void* drcontext)
@@ -71,7 +71,7 @@ namespace dr_semu::system::handlers
 
 				shared_variables::json_concurrent_vector.push_back(set_wallpaper);
 				dr_syscall_set_result(drcontext, STATUS_INVALID_PARAMETER);
-				return SYSCALL_RESULT::SKIP;
+				return SKIP;
 			}
 		}
 
@@ -82,7 +82,7 @@ namespace dr_semu::system::handlers
 		}
 
 
-		return SYSCALL_RESULT::CONTINUE;
+		return CONTINUE;
 	}
 
 	inline bool NtLoadDriver_handler(void* drcontext)
@@ -110,7 +110,7 @@ namespace dr_semu::system::handlers
 		}
 
 		dr_syscall_set_result(drcontext, STATUS_ACCESS_DENIED);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 
 	inline bool NtQuerySystemInformation_handler(void* drcontext) // TODO(x): ex
@@ -187,6 +187,6 @@ namespace dr_semu::system::handlers
 
 		shared_variables::json_concurrent_vector.push_back(query_system_info);
 		dr_syscall_set_result(drcontext, return_status);
-		return SYSCALL_RESULT::SKIP;
+		return SKIP;
 	}
 } // namespace dr_semu::system::handlers
